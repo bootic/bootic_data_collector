@@ -9,7 +9,7 @@ func ReceiveDatagrams () (err error) {
 
 	var conn *net.UDPConn
 
-  if conn, err = createUDPListener("192.168.100.245:55555"); err != nil {
+  if conn, err = createUDPListener("192.168.100.245:5555"); err != nil {
   	return err
   }
 
@@ -24,35 +24,28 @@ func ReceiveDatagrams () (err error) {
 
 func rcv (conn *net.UDPConn) {
 		
-		//func (c *UDPConn) ReadFromUDP(b []byte) (n int, addr *UDPAddr, err error)
-  	
-  	buffer := make([]byte, 8092)
+	buffer := make([]byte, 256)
 
-  	if c, addr, err := conn.ReadFromUDP(buffer); err != nil {
-  		
-  		fmt.Println("blergh: " + err.Error())
-  		return
-  	
-  	} else {
-  		
-  		fmt.Printf("datagram received from: %s\n", addr.String())
-			fmt.Printf("bytes received: %d\n", c)
-			fmt.Printf("buffer length: %d", len(buffer)) 
-  	}		 	
-}
-
-func handleConnection (conn net.Conn) {
-	fmt.Printf("datagram received from: %s\n", conn.RemoteAddr().String())
+	if c, addr, err := conn.ReadFromUDP(buffer); err != nil {
+		
+		fmt.Println("blergh: " + err.Error())
+		return
+	
+	} else {
+		
+		fmt.Printf("%d byte datagram received from %s\n\n", c, addr.String())
+		fmt.Printf("\t\"%s\"\n\n", string(buffer[:c]))
+	}	
 }
 
 func createUDPListener (hostAndPort string) (conn *net.UDPConn, err error) {
 
 	var udpaddr *net.UDPAddr
-	if udpaddr, err = net.ResolveUDPAddr("udp", hostAndPort); err != nil {
+	if udpaddr, err = net.ResolveUDPAddr("udp4", hostAndPort); err != nil {
 		return
 	}
 
-  conn, err = net.ListenUDP("udp", udpaddr)
+  conn, err = net.ListenUDP("udp4", udpaddr)
  
 	return
 }
