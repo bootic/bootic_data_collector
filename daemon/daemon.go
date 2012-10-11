@@ -3,14 +3,24 @@ package daemon
 import (
   "net"
   "fmt"
+  "github.com/bitly/go-simplejson"
 )
 
 type Input struct {
   Raw chan string
+  Json chan *simplejson.Json
 }
 
 func (this *Input) Process(msg string) {
-  this.Raw <- msg
+  go func(){
+    this.Raw <- msg
+    json, err := simplejson.NewJson([]byte(msg))
+    if err != nil {
+      panic("Invalid JSON: " + msg)
+    }
+    fmt.Println(json.Get("event_name"))
+    this.Json <- json
+  }()
 }
 
 func newInput() *Input {

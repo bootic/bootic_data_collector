@@ -32,7 +32,8 @@ func main () {
 	fmt.Println("serving ws at " + hostAndPort + "/ws")
 	
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
-	hub.Receive(input.Raw)
+	
+	hub.Receive(input.Json)
 	
 	// Start HTTP and WS services
 	if err := http.ListenAndServe(hostAndPort, nil); err != nil {

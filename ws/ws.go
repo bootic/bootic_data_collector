@@ -3,6 +3,8 @@ package ws
 import (
 	"code.google.com/p/go.net/websocket"
 	"net/http"
+	"fmt"
+	"github.com/bitly/go-simplejson"
 )
 
 type Connection struct {
@@ -16,12 +18,12 @@ type Connection struct {
 
 func (c *Connection) reader() {
 	for {
-		var message string
-		err := websocket.Message.Receive(c.ws, &message)
-		if err != nil {
-			break
-		}
-		c.hub.broadcast <- message
+	  var message string
+	  err := websocket.Message.Receive(c.ws, &message)
+	  if err != nil {
+	    break
+	  }
+	  c.hub.broadcast <- message
 	}
 	c.ws.Close()
 }
@@ -29,11 +31,16 @@ func (c *Connection) reader() {
 func (c *Connection) writer() {
 	for message := range c.send {
 		err := websocket.Message.Send(c.ws, message)
+		fmt.Println("AAAAA " + message)
 		if err != nil {
 			break
 		}
 	}
 	c.ws.Close()
+}
+
+func (c *Connection) sendJson (json *simplejson.Json) {
+  c.send <- json.Get("event_name").MustString()
 }
 
 type Hub struct {
@@ -63,10 +70,15 @@ func NewHub () (*Hub) {
  return h
 }
 
-func (h *Hub) Receive(input chan string) {
+func (h *Hub) Receive(input chan *simplejson.Json) {
   go func() {
     for {
-     h.broadcast <- <- input
+      json := <- input
+      msg, err := json.Encode()
+      if(err != nil) {
+        break;
+      }
+      h.broadcast <- string(msg)
     }
   }()
 }
