@@ -5,7 +5,21 @@ import (
   "fmt"
 )
 
-func ReceiveDatagrams (hostAndPort string) chan string {
+type Input struct {
+  Raw chan string
+}
+
+func (this *Input) Process(msg string) {
+  this.Raw <- msg
+}
+
+func newInput() *Input {
+  return &Input{
+    Raw: make(chan string),
+  }
+}
+
+func ReceiveDatagrams (hostAndPort string) Input {
 
 	var conn *net.UDPConn
   
@@ -17,15 +31,15 @@ func ReceiveDatagrams (hostAndPort string) chan string {
 
   fmt.Printf("Listener for UDP connections on %s\n", conn.LocalAddr().String())
   
-  input := make(chan string)
+  input := newInput()
   
   go rcv(conn, input)
   
-  return input
+  return *input
   
 }
 
-func rcv (conn *net.UDPConn, input chan string) {
+func rcv (conn *net.UDPConn, input *Input) {
 	for {
 	  buffer := make([]byte, 256)
 
@@ -40,7 +54,7 @@ func rcv (conn *net.UDPConn, input chan string) {
   		fmt.Printf("%d byte datagram received from %s\n\n", c, addr.String())
   		fmt.Printf("\t\"%s\"\n\n", msg)
   		
-  		input <- msg
+  		input.Process(msg)
   	}	
   	
 	}

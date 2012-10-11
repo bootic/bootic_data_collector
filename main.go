@@ -18,20 +18,21 @@ func homeHandler(c http.ResponseWriter, req *http.Request) {
 }
 
 func main () {
-  
-  hub := ws.HandleWebsocketsHub("/ws")
-
-	fmt.Println("serving ws at " + hostAndPort + "/ws")
 	
+	// Serve HTML Page +++++++++++++++++++++++++++++++++++++++++++++++++++
 	http.HandleFunc("/", homeHandler)
 	fmt.Println("serving HTTP at " + hostAndPort + "/")
 	
+	// Start up UDP daemon +++++++++++++++++++++++++++++++++++++++++++++++
 	input := daemon.ReceiveDatagrams(hostAndPort)
-	
-	// Push incoming UDP messages to multiple listeners
-	hub.Receive(input)
-	
 	fmt.Println("listening to UDP " + hostAndPort)
+	
+	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
+	hub := ws.HandleWebsocketsHub("/ws")
+	fmt.Println("serving ws at " + hostAndPort + "/ws")
+	
+	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
+	hub.Receive(input.Raw)
 	
 	// Start HTTP and WS services
 	if err := http.ListenAndServe(hostAndPort, nil); err != nil {
