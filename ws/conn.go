@@ -19,7 +19,7 @@ func (c *Connection) reader() {
 		if err != nil {
 			break
 		}
-		Hub.Broadcast <- message
+		Hub.broadcast <- message
 	}
 	c.ws.Close()
 }

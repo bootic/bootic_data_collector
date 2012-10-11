@@ -28,15 +28,10 @@ func main () {
 	http.HandleFunc("/", homeHandler)
 	fmt.Println("serving HTTP at " + hostAndPort + "/")
 	
-	daemon.ReceiveDatagrams(hostAndPort, ws.Hub.Broadcast)
+	input := daemon.ReceiveDatagrams(hostAndPort)
 	
 	// Push incoming UDP messages to multiple listeners
-	// go func() {
-	//     for {
-	//      fmt.Println("LALALA")
-	//      ws.Hub.Broadcast <- <- incoming
-	//     }
-	//   }()
+	ws.Hub.Receive(input)
 	
 	fmt.Println("listening to UDP " + hostAndPort)
 	

@@ -5,7 +5,7 @@ import (
   "fmt"
 )
 
-func ReceiveDatagrams (hostAndPort string, broadcast chan string) {
+func ReceiveDatagrams (hostAndPort string) chan string {
 
 	var conn *net.UDPConn
   
@@ -16,12 +16,16 @@ func ReceiveDatagrams (hostAndPort string, broadcast chan string) {
   }
 
   fmt.Printf("Listener for UDP connections on %s\n", conn.LocalAddr().String())
-
-  go rcv(conn, broadcast)
+  
+  input := make(chan string)
+  
+  go rcv(conn, input)
+  
+  return input
   
 }
 
-func rcv (conn *net.UDPConn, broadcast chan string) {
+func rcv (conn *net.UDPConn, input chan string) {
 	for {
 	  buffer := make([]byte, 256)
 
@@ -36,7 +40,7 @@ func rcv (conn *net.UDPConn, broadcast chan string) {
   		fmt.Printf("%d byte datagram received from %s\n\n", c, addr.String())
   		fmt.Printf("\t\"%s\"\n\n", msg)
   		
-  		broadcast <- msg
+  		input <- msg
   	}	
   	
 	}

@@ -5,7 +5,7 @@ type hub struct {
 	connections map[*Connection]bool
 
 	// Inbound messages from the connections.
-	Broadcast chan string
+	broadcast chan string
 
 	// Register requests from the connections.
 	register chan *Connection
@@ -16,11 +16,19 @@ type hub struct {
 
 func NewHub () (*hub) {
  return &hub{
- 	Broadcast:   make(chan string),
+ 	broadcast:   make(chan string),
  	register:    make(chan *Connection),
  	unregister:  make(chan *Connection),
  	connections: make(map[*Connection]bool),
  }
+}
+
+func (h *hub) Receive(input chan string) {
+  go func() {
+    for {
+     h.broadcast <- <- input
+    }
+  }()
 }
 
 var Hub = NewHub()
@@ -33,7 +41,7 @@ func (h *hub) Run() {
 		case c := <-h.unregister:
 			delete(h.connections, c)
 			close(c.send)
-		case m := <-h.Broadcast:
+		case m := <-h.broadcast:
 			for c := range h.connections {
 				select {
 				case c.send <- m:
