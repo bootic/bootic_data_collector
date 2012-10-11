@@ -2,7 +2,6 @@ package main
 
 import (
 	"datagram.io/daemon"
-  "code.google.com/p/go.net/websocket"
 	"datagram.io/ws"
   "net/http"
   "fmt"
@@ -20,9 +19,8 @@ func homeHandler(c http.ResponseWriter, req *http.Request) {
 
 func main () {
   
-  go ws.Hub.Run()
-  
-	http.Handle("/ws", websocket.Handler(ws.WsHandler))
+  hub := ws.HandleWebsocketsHub("/ws")
+
 	fmt.Println("serving ws at " + hostAndPort + "/ws")
 	
 	http.HandleFunc("/", homeHandler)
@@ -31,10 +29,11 @@ func main () {
 	input := daemon.ReceiveDatagrams(hostAndPort)
 	
 	// Push incoming UDP messages to multiple listeners
-	ws.Hub.Receive(input)
+	hub.Receive(input)
 	
 	fmt.Println("listening to UDP " + hostAndPort)
 	
+	// Start HTTP and WS services
 	if err := http.ListenAndServe(hostAndPort, nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
