@@ -1,27 +1,31 @@
 package ws
 
-type Hub struct {
+type hub struct {
 	// Registered connections.
-	connections map[*connection]bool
+	connections map[*Connection]bool
 
 	// Inbound messages from the connections.
-	broadcast chan string
+	Broadcast chan string
 
 	// Register requests from the connections.
-	register chan *connection
+	register chan *Connection
 
 	// Unregister requests from connections.
-	unregister chan *connection
+	unregister chan *Connection
 }
 
-var H = Hub{
-	broadcast:   make(chan string),
-	register:    make(chan *connection),
-	unregister:  make(chan *connection),
-	connections: make(map[*connection]bool),
+func NewHub () (*hub) {
+ return &hub{
+ 	Broadcast:   make(chan string),
+ 	register:    make(chan *Connection),
+ 	unregister:  make(chan *Connection),
+ 	connections: make(map[*Connection]bool),
+ }
 }
 
-func (h *Hub) Run() {
+var Hub = NewHub()
+
+func (h *hub) Run() {
 	for {
 		select {
 		case c := <-h.register:
@@ -29,7 +33,7 @@ func (h *Hub) Run() {
 		case c := <-h.unregister:
 			delete(h.connections, c)
 			close(c.send)
-		case m := <-h.broadcast:
+		case m := <-h.Broadcast:
 			for c := range h.connections {
 				select {
 				case c.send <- m:

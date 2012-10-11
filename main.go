@@ -19,14 +19,25 @@ func homeHandler(c http.ResponseWriter, req *http.Request) {
 }
 
 func main () {
-  go ws.H.Run()
+  
+  go ws.Hub.Run()
+  
 	http.Handle("/ws", websocket.Handler(ws.WsHandler))
 	fmt.Println("serving ws at " + hostAndPort + "/ws")
 	
 	http.HandleFunc("/", homeHandler)
 	fmt.Println("serving HTTP at " + hostAndPort + "/")
 	
-	daemon.ReceiveDatagrams(hostAndPort)
+	daemon.ReceiveDatagrams(hostAndPort, ws.Hub.Broadcast)
+	
+	// Push incoming UDP messages to multiple listeners
+	// go func() {
+	//     for {
+	//      fmt.Println("LALALA")
+	//      ws.Hub.Broadcast <- <- incoming
+	//     }
+	//   }()
+	
 	fmt.Println("listening to UDP " + hostAndPort)
 	
 	if err := http.ListenAndServe(hostAndPort, nil); err != nil {

@@ -4,7 +4,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 )
 
-type connection struct {
+type Connection struct {
 	// The websocket connection.
 	ws *websocket.Conn
 
@@ -12,19 +12,19 @@ type connection struct {
 	send chan string
 }
 
-func (c *connection) reader() {
+func (c *Connection) reader() {
 	for {
 		var message string
 		err := websocket.Message.Receive(c.ws, &message)
 		if err != nil {
 			break
 		}
-		H.broadcast <- message
+		Hub.Broadcast <- message
 	}
 	c.ws.Close()
 }
 
-func (c *connection) writer() {
+func (c *Connection) writer() {
 	for message := range c.send {
 		err := websocket.Message.Send(c.ws, message)
 		if err != nil {
@@ -35,9 +35,9 @@ func (c *connection) writer() {
 }
 
 func WsHandler(ws *websocket.Conn) {
-	c := &connection{send: make(chan string, 256), ws: ws}
-	H.register <- c
-	defer func() { H.unregister <- c }()
+	c := &Connection{send: make(chan string, 256), ws: ws}
+	Hub.register <- c
+	defer func() { Hub.unregister <- c }()
 	go c.writer()
 	c.reader()
 }
