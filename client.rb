@@ -2,7 +2,7 @@ require 'socket'
 s = UDPSocket.new
 
 # HOST = '192.168.245'
-HOST = '192.168.100.245'
+HOST = 'localhost'
 
 1.upto 1000 do |i|
   msg = "hello ##{i}"
