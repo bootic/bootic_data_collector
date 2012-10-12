@@ -4,9 +4,10 @@ import (
   "net"
   "fmt"
   "log"
+  "datagram.io/data"
 )
 
-func ReceiveDatagrams (hostAndPort string) EventStream {
+func ReceiveDatagrams (hostAndPort string) *data.EventStream {
 
 	var conn *net.UDPConn
   
@@ -18,15 +19,15 @@ func ReceiveDatagrams (hostAndPort string) EventStream {
 
   fmt.Printf("Listener for UDP connections on %s\n", conn.LocalAddr().String())
   
-  eventStream := newEventStream()
+  eventStream := data.NewEventStream()
   
   go rcv(conn, eventStream)
   
-  return *eventStream
+  return eventStream
   
 }
 
-func rcv (conn *net.UDPConn, eventStream *EventStream) {
+func rcv (conn *net.UDPConn, eventStream *data.EventStream) {
 	for {
 	  buffer := make([]byte, 256)
 
@@ -39,7 +40,7 @@ func rcv (conn *net.UDPConn, eventStream *EventStream) {
       
       log.Printf("received %d byte datagram from %s\n", c, addr.String())
 
-      eventStream.writeBytes(buffer[:c])
+      eventStream.WriteBytes(buffer[:c])
   	}	
   	
 	}

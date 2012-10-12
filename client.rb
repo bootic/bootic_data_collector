@@ -7,10 +7,8 @@ HOST = 'localhost'
 
 1.upto 10 do |i|
   msg = JSON.dump(
-    event_name: "hello ##{i}",
-    payload: {
-      date: Time.now.to_s
-    }
+    desc: "hello ##{i}",
+    tags: ['tag1', 'tag2', 'tag3', "tag-x-#{i}"]
   )
   s.send(msg, 0, HOST, 5555)  
   p [:send, msg]

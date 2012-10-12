@@ -6,15 +6,6 @@ import(
 	"fmt"
 )
 
-type Event struct {
-	//Uid		 int `PK` //if the table's PrimaryKey is not id ,should add `PK` to ident
-	Id	 int
-	Desc string
-	Tags []string
-	//Occurred
-	//Created		 time.Time
-}
-
 var (
 	insertEventStmt     *sql.Stmt
 	insertTagStmt	      *sql.Stmt
@@ -101,42 +92,6 @@ func tagEvents(tx *sql.Tx, eventId int64, tagIds []int64) (err error) {
 
 	if _, err = tx.Exec(buffer.String()); err != nil {
 		return fmt.Errorf("Error tagging event: %s\nQuery:\n\n%s", err.Error(), buffer.String())
-	}
-
-	return
-}
-
-func StoreEvent(event *Event) (err error) {
-	
-	// insert the tags and bail if we get an error
-	// TODO, do this within a transaction
-	var tagIds []int64
-	if tagIds, err = findOrCreateTags(event.Tags); err != nil {
-		return
-	}
-
-  var tx *sql.Tx
-
-	if tx, err = pg.Begin(); err != nil {
-		return
-	}
-
-  defer /* panic-recover */ func() {
-		
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
-
-	var eventId int64
-	if err = tx.Stmt(insertEventStmt).QueryRow(event.Desc).Scan(&eventId); err != nil {
-		return
-	}
-
-	if err = tagEvents(tx, eventId, tagIds); err != nil {
-		return
 	}
 
 	return

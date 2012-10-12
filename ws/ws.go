@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"fmt"
-	"datagram.io/db"
+	"datagram.io/data"
 )
 
 type Connection struct {
@@ -40,22 +40,7 @@ func (c *Connection) writer() {
 	c.ws.Close()
 }
 
-type Hub struct {
-	// Registered connections.
-	connections map[*Connection]bool
-
-	// Inbound messages from the connections.
-	broadcast chan string
-
-	// Register requests from the connections.
-	register chan *Connection
-
-	// Unregister requests from connections.
-	unregister chan *Connection
-}
-
-
-func decodeEventIntoString(event *db.Event) (str string, err error) {
+func decodeEventIntoString(event *data.Event) (str string, err error) {
 	bytes, err := json.Marshal(event)
 	if err != nil {
 		return
@@ -63,31 +48,7 @@ func decodeEventIntoString(event *db.Event) (str string, err error) {
 	return string(bytes), err
 }
 
-func NewHub () (*Hub) {
- h := &Hub{
- 	broadcast:   make(chan string),
- 	register:    make(chan *Connection),
- 	unregister:  make(chan *Connection),
- 	connections: make(map[*Connection]bool),
- }
- 
- go h.Run()
- 
- return h
-}
 
-func (h *Hub) Receive(input chan *db.Event) {
-  go func() {
-    for {
-      event := <- input
-      msg, err := decodeEventIntoString(event)
-      if(err != nil) {
-        break;
-      }
-      h.broadcast <- msg
-    }
-  }()
-}
 
 func (this *Hub) Run() {
 	for {

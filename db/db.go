@@ -3,10 +3,26 @@ package db
 import (
 	"database/sql"
 	_ "github.com/bmizerany/pq"
+	"datagram.io/data"
 	//"twitter1/vendor/redigo/redis"
 )
 
 var pg *sql.DB
+var newEvents *data.EventStream
+
+func Init() {
+
+	if c, err := sql.Open("postgres", "dbname=datagram sslmode=disable"); err == nil {
+		pg = c
+	} else {
+		panic(err)
+	}
+
+	newEvents = data.NewEventStream()
+
+  prepareEventStatements()
+}
+
 
 func prepareOrPanic(query string) (stmt *sql.Stmt) {
 
@@ -17,15 +33,4 @@ func prepareOrPanic(query string) (stmt *sql.Stmt) {
   } 
 
   return stmt
-}
-
-func Init() {
-
-	if c, err := sql.Open("postgres", "dbname=datagram sslmode=disable"); err == nil {
-		pg = c
-	} else {
-		panic(err)
-	}
-
-  prepareEventStatements()
 }

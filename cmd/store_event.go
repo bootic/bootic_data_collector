@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"datagram.io/data"
 	"datagram.io/db"
 	"fmt"
 )
@@ -20,7 +21,7 @@ func StoreEvent() (err error) {
 
 	desc := os.Args[2]
 	tags := []string{"tag1", "tag2", "tag3"}
-	event := db.Event{Desc: desc, Tags: tags}
+	event := data.Event{Desc: desc, Tags: tags}
 
 	err = db.StoreEvent(&event)
 

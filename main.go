@@ -17,15 +17,16 @@ const hostAndPort = "localhost:5555"
 func daemons() (err error) {
 
 	// Start up UDP daemon +++++++++++++++++++++++++++++++++++++++++++++++
-	input := daemon.ReceiveDatagrams(hostAndPort)
+	udpEventStream := daemon.ReceiveDatagrams(hostAndPort)
 	
+	newEvents := db.StoreEvents(udpEventStream)
+
 	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
-	hub := ws.HandleWebsocketsHub("/ws")
+	wshub := ws.HandleWebsocketsHub("/ws")
 	fmt.Println("websocket server at " + hostAndPort + "/ws")
 	
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
-	hub.Receive(input.Events)
-	
+	wshub.Receive(newEvents)
 
 	router := web.Router()
 	http.Handle("/", router)
