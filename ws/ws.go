@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"fmt"
+	"datagram.io/db"
 )
 
 type Connection struct {
@@ -54,12 +55,12 @@ type Hub struct {
 }
 
 
-func decodeEventIntoString(event db.Event) (err error, str string) {
-	b, err := json.Marshal(event)
+func decodeEventIntoString(event *db.Event) (str string, err error) {
+	bytes, err := json.Marshal(event)
 	if err != nil {
 		return
 	}
-	return string(b), err
+	return string(bytes), err
 }
 
 func NewHub () (*Hub) {

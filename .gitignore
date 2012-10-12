@@ -19,4 +19,9 @@ _cgo_export.*
 
 _testmain.go
 
+<<<<<<< HEAD
+=======
+exp.go
+
+>>>>>>> pg
 *.exe

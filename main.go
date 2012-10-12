@@ -5,47 +5,62 @@ import (
 	"datagram.io/ws"
   "net/http"
   "fmt"
-  "text/template"
   "log"
+  "datagram.io/web"
+  "datagram.io/db"
+  "datagram.io/cmd"
+  "os"
 )
 
 const hostAndPort = "localhost:5555"
 
-var homeTempl = template.Must(template.ParseFiles("views/home.html"))
+func daemons() (err error) {
 
-func homeHandler(c http.ResponseWriter, req *http.Request) {
-	homeTempl.Execute(c, req.Host)
-}
-
-func main () {
-	
-	// Serve HTML Page +++++++++++++++++++++++++++++++++++++++++++++++++++
-	http.HandleFunc("/", homeHandler)
-	fmt.Println("serving HTTP at " + hostAndPort + "/")
-	
 	// Start up UDP daemon +++++++++++++++++++++++++++++++++++++++++++++++
 	input := daemon.ReceiveDatagrams(hostAndPort)
-	fmt.Println("listening to UDP " + hostAndPort)
 	
-	// store := db.store(input.Events)
-
 	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
 	hub := ws.HandleWebsocketsHub("/ws")
-	fmt.Println("serving ws at " + hostAndPort + "/ws")
+	fmt.Println("websocket server at " + hostAndPort + "/ws")
 	
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
-	
 	hub.Receive(input.Events)
 	
-	// Start HTTP and WS services
-	if err := http.ListenAndServe(hostAndPort, nil); err != nil {
-		log.Fatal("ListenAndServe:", err)
-	}
-	
+
+	router := web.Router()
+	http.Handle("/", router)
+
+	fmt.Println("serving HTTP at " + hostAndPort + "/")
+	log.Fatal("HTTP server error: ", http.ListenAndServe(hostAndPort, nil))
+
+	return nil
 }
 
-func checkError (err error, info string) {
-	if (err != nil) {
-		panic("ERROR: " + info + ", " + err.Error())
+func main() {
+
+	db.Init()
+
+	commands := map[string]func() error{
+		"setupdb":            db.SetupDB,
+		"store-event":        cmd.StoreEvent,
+		"daemon":             daemons,
+		"help":               cmd.Help,
+	}
+
+	argc := len(os.Args)
+	commandName := "help"
+
+	if argc > 1 {
+		commandName = os.Args[1]
+	}
+
+	var command func() error
+
+	if command = commands[commandName]; command == nil {
+		command = cmd.Help
+	}
+
+	if err := command(); err != nil {
+		fmt.Println(err)
 	}
 }

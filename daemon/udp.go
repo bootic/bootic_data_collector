@@ -6,9 +6,7 @@ import (
   "log"
 )
 
-
-
-func ReceiveDatagrams (hostAndPort string) Incoming {
+func ReceiveDatagrams (hostAndPort string) EventStream {
 
 	var conn *net.UDPConn
   
@@ -20,15 +18,15 @@ func ReceiveDatagrams (hostAndPort string) Incoming {
 
   fmt.Printf("Listener for UDP connections on %s\n", conn.LocalAddr().String())
   
-  incoming := newIncoming()
+  eventStream := newEventStream()
   
-  go rcv(conn, incoming)
+  go rcv(conn, eventStream)
   
-  return *incoming
+  return *eventStream
   
 }
 
-func rcv (conn *net.UDPConn, incoming *Incoming) {
+func rcv (conn *net.UDPConn, eventStream *EventStream) {
 	for {
 	  buffer := make([]byte, 256)
 
@@ -41,7 +39,7 @@ func rcv (conn *net.UDPConn, incoming *Incoming) {
       
       log.Printf("received %d byte datagram from %s\n", c, addr.String())
 
-      incoming.writeBytes(buffer[:c])
+      eventStream.writeBytes(buffer[:c])
   	}	
   	
 	}

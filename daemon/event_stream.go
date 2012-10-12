@@ -3,26 +3,28 @@ package daemon
 
 import(
 	"encoding/json"
+  "datagram.io/db"
 )
 
 type EventStream struct {
   Events chan *db.Event
 }
 
-func jsonBytesIntoEvent(payload []byte) (err error, event db.Event) {
-	err := json.Unmarshal(payload, &event)
-
+func jsonBytesIntoEvent(payload []byte) (event db.Event, err error) {
+	err = json.Unmarshal(payload, &event)
 	return
 }
 
-func (this *EventStream) writeBytes(payload []byte) {
+func (events *EventStream) writeBytes(payload []byte) {
   go func(){
+    
     event, err := jsonBytesIntoEvent(payload)//simplejson.NewJson([]byte(msg))
+    
     if err != nil {
-      panic("Invalid JSON: " + payload)
+      panic("Invalid JSON: " + string(payload))
     }
    	
-    this.Events <- event
+    events.Events <- &event
   }()
 }
 
