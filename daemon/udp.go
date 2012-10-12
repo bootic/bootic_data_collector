@@ -3,33 +3,12 @@ package daemon
 import (
   "net"
   "fmt"
-  "github.com/bitly/go-simplejson"
+  "log"
 )
 
-type Input struct {
-  Raw chan string
-  Json chan *simplejson.Json
-}
 
-func (this *Input) Process(msg string) {
-  go func(){
-    this.Raw <- msg
-    json, err := simplejson.NewJson([]byte(msg))
-    if err != nil {
-      panic("Invalid JSON: " + msg)
-    }
-    fmt.Println(json.Get("event_name"))
-    this.Json <- json
-  }()
-}
 
-func newInput() *Input {
-  return &Input{
-    Raw: make(chan string),
-  }
-}
-
-func ReceiveDatagrams (hostAndPort string) Input {
+func ReceiveDatagrams (hostAndPort string) Incoming {
 
 	var conn *net.UDPConn
   
@@ -41,15 +20,15 @@ func ReceiveDatagrams (hostAndPort string) Input {
 
   fmt.Printf("Listener for UDP connections on %s\n", conn.LocalAddr().String())
   
-  input := newInput()
+  incoming := newIncoming()
   
-  go rcv(conn, input)
+  go rcv(conn, incoming)
   
-  return *input
+  return *incoming
   
 }
 
-func rcv (conn *net.UDPConn, input *Input) {
+func rcv (conn *net.UDPConn, incoming *Incoming) {
 	for {
 	  buffer := make([]byte, 256)
 
@@ -60,16 +39,16 @@ func rcv (conn *net.UDPConn, input *Input) {
 
   	} else {
       
-      msg := string(buffer[:c])
-  		fmt.Printf("%d byte datagram received from %s\n\n", c, addr.String())
-  		fmt.Printf("\t\"%s\"\n\n", msg)
-  		
-  		input.Process(msg)
+      log.Printf("received %d byte datagram from %s\n", c, addr.String())
+
+      incoming.writeBytes(buffer[:c])
   	}	
   	
 	}
 	panic("should never have got myself into this.")
 }
+
+
 
 func createUDPListener (hostAndPort string) (conn *net.UDPConn, err error) {
 

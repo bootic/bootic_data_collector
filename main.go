@@ -27,13 +27,15 @@ func main () {
 	input := daemon.ReceiveDatagrams(hostAndPort)
 	fmt.Println("listening to UDP " + hostAndPort)
 	
+	// store := db.store(input.Events)
+
 	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
 	hub := ws.HandleWebsocketsHub("/ws")
 	fmt.Println("serving ws at " + hostAndPort + "/ws")
 	
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
 	
-	hub.Receive(input.Json)
+	hub.Receive(input.Events)
 	
 	// Start HTTP and WS services
 	if err := http.ListenAndServe(hostAndPort, nil); err != nil {

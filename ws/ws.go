@@ -3,8 +3,8 @@ package ws
 import (
 	"code.google.com/p/go.net/websocket"
 	"net/http"
+	"encoding/json"
 	"fmt"
-	"github.com/bitly/go-simplejson"
 )
 
 type Connection struct {
@@ -39,10 +39,6 @@ func (c *Connection) writer() {
 	c.ws.Close()
 }
 
-func (c *Connection) sendJson (json *simplejson.Json) {
-  c.send <- json.Get("event_name").MustString()
-}
-
 type Hub struct {
 	// Registered connections.
 	connections map[*Connection]bool
@@ -55,6 +51,15 @@ type Hub struct {
 
 	// Unregister requests from connections.
 	unregister chan *Connection
+}
+
+
+func decodeEventIntoString(event db.Event) (err error, str string) {
+	b, err := json.Marshal(event)
+	if err != nil {
+		return
+	}
+	return string(b), err
 }
 
 func NewHub () (*Hub) {
@@ -70,15 +75,15 @@ func NewHub () (*Hub) {
  return h
 }
 
-func (h *Hub) Receive(input chan *simplejson.Json) {
+func (h *Hub) Receive(input chan *db.Event) {
   go func() {
     for {
-      json := <- input
-      msg, err := json.Encode()
+      event := <- input
+      msg, err := decodeEventIntoString(event)
       if(err != nil) {
         break;
       }
-      h.broadcast <- string(msg)
+      h.broadcast <- msg
     }
   }()
 }
