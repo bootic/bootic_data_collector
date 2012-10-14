@@ -118,7 +118,7 @@ function runStream () {
 
   function createEventDOM (e) {
     var d = $("<div>").addClass('event-view')
-    d.text(e.Desc)
+    d.text(e.Desc + ' - ' + e.Tags.join(', '))
     d.addClass(e.Tags.join(' t_'))
     // d.attr('data-tags', e.Tags.join(' '))
     return d
