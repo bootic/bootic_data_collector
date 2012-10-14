@@ -3,9 +3,8 @@ package ws
 import (
 	"code.google.com/p/go.net/websocket"
 	"net/http"
-	"encoding/json"
 	"fmt"
-	"datagram.io/data"
+  "strings"
 )
 
 type Connection struct {
@@ -40,37 +39,6 @@ func (c *Connection) writer() {
 	c.ws.Close()
 }
 
-func decodeEventIntoString(event *data.Event) (str string, err error) {
-	bytes, err := json.Marshal(event)
-	if err != nil {
-		return
-	}
-	return string(bytes), err
-}
-
-
-
-func (this *Hub) Run() {
-	for {
-		select {
-		case c := <-this.register:
-			this.connections[c] = true
-		case c := <-this.unregister:
-			delete(this.connections, c)
-			close(c.send)
-		case m := <-this.broadcast:
-			for c := range this.connections {
-				select {
-				case c.send <- m:
-				default:
-					delete(this.connections, c)
-					close(c.send)
-					go c.ws.Close()
-				}
-			}
-		}
-	}
-}
 
 func HandleWebsocketsHub (path string) *Hub {
 
