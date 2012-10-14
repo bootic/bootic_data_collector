@@ -2,6 +2,7 @@ package data
 
 import(
 	"encoding/json"
+	"time"
 )
 
 type EventStream struct {
@@ -10,6 +11,7 @@ type EventStream struct {
 
 func jsonBytesIntoEvent(payload []byte) (event Event, err error) {
 	err = json.Unmarshal(payload, &event)
+	event.CreatedOn = time.Now()
 	return
 }
 
