@@ -14,9 +14,22 @@ type Connection struct {
   
 	// Buffered channel of outbound messages.
 	send chan string
+	
+	// Filters
+	tags []string
 }
 
 func (c *Connection) reader() {
+  tagsQuery := c.ws.Request().URL.Query().Get("tags")
+  var tags []string
+  
+  if tagsQuery != ""{
+    tags = strings.Split(tagsQuery, ",")
+    c.tags = append(c.tags, tags...)
+  }
+  
+  fmt.Println("ws [conn] initialized with", c.tags)
+  
 	for {
 	  var message string
 	  err := websocket.Message.Receive(c.ws, &message)
@@ -31,7 +44,7 @@ func (c *Connection) reader() {
 func (c *Connection) writer() {
 	for message := range c.send {
 		err := websocket.Message.Send(c.ws, message)
-		fmt.Println("AAAAA " + message)
+		fmt.Println("WS send " + message)
 		if err != nil {
 			break
 		}
