@@ -2,40 +2,44 @@ package ws
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"net/http"
+	"datagram.io/data"
 	"encoding/json"
 	"fmt"
-	"datagram.io/data"
+	"net/http"
+	"strings"
 )
 
-type WebsocketConnection struct {
+type Connection struct {
 	// The websocket connection.
-	ws *websocket.Conn
-  hub *WebsocketHub
-  
+	ws  *websocket.Conn
+	hub *Hub
+
 	// Buffered channel of outbound messages.
-	send chan string
+	send chan *data.Event
+
+	// Filters
+	tags []string
 }
 
-func (c *WebsocketConnection) reader() {
-	for {
-	  var message string
-	  err := websocket.Message.Receive(c.ws, &message)
-	  if err != nil {
-	    break
-	  }
-	  c.hub.broadcast <- message
+func (c *Connection) reader() {
+	tagsQuery := c.ws.Request().URL.Query().Get("tags")
+	var tags []string
+
+	if tagsQuery != "" {
+		tags = strings.Split(tagsQuery, ",")
+		c.tags = append(c.tags, tags...)
 	}
-	c.ws.Close()
-}
 
-func (c *WebsocketConnection) writer() {
-	for message := range c.send {
-		err := websocket.Message.Send(c.ws, message)
-		fmt.Println("AAAAA " + message)
+	fmt.Println("ws [conn] initialized with", c.tags)
+
+	// We need to block here, otherwise the connection closes. Not sure what the best solution is.
+	for {
+		var message string
+		err := websocket.Message.Receive(c.ws, &message)
 		if err != nil {
 			break
 		}
+		// c.hub.broadcast <- message
 	}
 	c.ws.Close()
 }
@@ -48,41 +52,58 @@ func decodeEventIntoString(event *data.Event) (str string, err error) {
 	return string(bytes), err
 }
 
-
-
-func (this *WebsocketHub) Run() {
-	for {
-		select {
-		case c := <-this.register:
-			this.connections[c] = true
-		case c := <-this.unregister:
-			delete(this.connections, c)
-			close(c.send)
-		case m := <-this.broadcast:
-			for c := range this.connections {
-				select {
-				case c.send <- m:
-				default:
-					delete(this.connections, c)
-					close(c.send)
-					go c.ws.Close()
+// An event must match all filters in a connection in order to be sent to connection
+// If connection has no filters, then we assume connection wants ALL events
+func (c *Connection) includedInFilters(event *data.Event) bool {
+	if len(c.tags) == 0 { // no filters set. Allow everything
+		return true
+	} else { // only for set filters
+		matches := 0
+		for _, myTag := range c.tags {
+			for _, t := range event.Tags {
+				fmt.Println("INCHECK", myTag, t)
+				if t == myTag {
+					matches = matches + 1
 				}
 			}
 		}
+		if matches == len(c.tags) {
+			return true
+		}
 	}
+	return false
 }
 
-func HandleWebsocketsHub (path string) *WebsocketHub {
+func (c *Connection) writer() {
+	for event := range c.send {
+		if c.includedInFilters(event) {
+			message, err := decodeEventIntoString(event)
+			if err != nil {
+				break
+			}
 
-  hub := NewWebsocketHub()
-  
-  http.Handle(path, websocket.Handler(func(ws *websocket.Conn) {
-    c := &WebsocketConnection{send: make(chan string, 256), ws: ws, hub: hub}
-  	hub.register <- c
-  	defer func() { hub.unregister <- c }()
-  	go c.writer()
-  	c.reader()
-  }))
-  
-  return hub
+			err2 := websocket.Message.Send(c.ws, message)
+
+			if err2 != nil {
+				break
+			}
+		}
+	}
+	fmt.Println("NEVER HERE")
+	c.ws.Close()
+}
+
+func HandleWebsocketsHub(path string) *Hub {
+
+	hub := NewHub()
+
+	http.Handle(path, websocket.Handler(func(ws *websocket.Conn) {
+		c := &Connection{send: make(chan *data.Event, 256), ws: ws, hub: hub}
+		hub.register <- c
+		defer func() { hub.unregister <- c }()
+		go c.writer()
+		c.reader()
+	}))
+
+	return hub
 }

@@ -12,7 +12,8 @@ const setup string = `
 
   CREATE TABLE event (
     "id"   SERIAL PRIMARY KEY, 
-    "desc" text
+    "desc" text,
+    "created_on" timestamp not null default NOW()
   );
   
   CREATE TABLE tag (

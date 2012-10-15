@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"os"
 	"datagram.io/data"
 	"datagram.io/db"
 	"fmt"
+	"os"
 )
 
 func StoreEvent() (err error) {

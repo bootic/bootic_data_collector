@@ -4,42 +4,60 @@ import (
 	"datagram.io/data"
 )
 
-type WebsocketHub struct {
+type Hub struct {
 	// Registered connections.
-	connections map[*WebsocketConnection]bool
+	connections map[*Connection]bool
 
 	// Inbound messages from the connections.
-	broadcast chan string
+	broadcast chan *data.Event
 
 	// Register requests from the connections.
-	register chan *WebsocketConnection
+	register chan *Connection
 
 	// Unregister requests from connections.
-	unregister chan *WebsocketConnection
+	unregister chan *Connection
 }
 
-func NewWebsocketHub () (*WebsocketHub) {
- h := &WebsocketHub{
- 	broadcast:   make(chan string),
- 	register:    make(chan *WebsocketConnection),
- 	unregister:  make(chan *WebsocketConnection),
- 	connections: make(map[*WebsocketConnection]bool),
- }
- 
- go h.Run()
- 
- return h
+func NewHub() *Hub {
+	h := &Hub{
+		broadcast:   make(chan *data.Event),
+		register:    make(chan *Connection),
+		unregister:  make(chan *Connection),
+		connections: make(map[*Connection]bool),
+	}
+
+	go h.Run()
+
+	return h
 }
 
-func (h *WebsocketHub) Receive(eventStream *data.EventStream) {
-  go func() {
-    for {
-      event := <- eventStream.Events
-      msg, err := decodeEventIntoString(event)
-      if(err != nil) {
-        break;
-      }
-      h.broadcast <- msg
-    }
-  }()
+func (h *Hub) Receive(eventStream *data.EventStream) {
+	go func() {
+		for {
+			event := <-eventStream.Events
+			h.broadcast <- event
+		}
+	}()
+}
+
+func (this *Hub) Run() {
+	for {
+		select {
+		case c := <-this.register:
+			this.connections[c] = true
+		case c := <-this.unregister:
+			delete(this.connections, c)
+			close(c.send)
+		case event := <-this.broadcast:
+			for c := range this.connections {
+				select {
+				case c.send <- event:
+				default:
+					delete(this.connections, c)
+					close(c.send)
+					go c.ws.Close()
+				}
+			}
+		}
+	}
 }
