@@ -6,9 +6,10 @@ var TaggedSocket = (function () {
 
   var ws
 
-  var TaggedSocket = function (host) {
+  var TaggedSocket = function (host, tagsQuery) {
+    tagsQuery = tagsQuery || []
     this.tags = []
-    ws = new WebSocket(host)
+    ws = new WebSocket(host + "?tags=" + tagsQuery.join(','))
     ws.onopen = $.proxy(this.onopen, this)
     ws.onclose = $.proxy(this.onclose, this)
     ws.onmessage = $.proxy(this.dispatch, this)
@@ -51,7 +52,10 @@ function runStream () {
   var msg = $("#msg");
   var log = $("#log");
   
+  // Unfiltered connection. Full stream
   conn = new TaggedSocket("ws://{{$}}/ws");
+  // Filtered connection. Only events matching these tags
+  // conn = new TaggedSocket("ws://{{$}}/ws", ['tag-1,tag-4']);
   
   conn.onclose = function(evt) {
     alert("closed")
