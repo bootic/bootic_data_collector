@@ -1,12 +1,12 @@
 package main
 
 import (
-	"datagram.io/daemon"
-	"datagram.io/ws"
   "net/http"
   "fmt"
   "log"
-  "datagram.io/web"
+	"datagram.io/daemon"
+	"datagram.io/daemon/ws"
+	"datagram.io/daemon/web"
   "datagram.io/db"
   "datagram.io/cmd"
   "os"
@@ -20,7 +20,7 @@ func daemons() (err error) {
 	udpEventStream := daemon.ReceiveDatagrams(hostAndPort)
 	
 	newEvents := db.StoreEvents(udpEventStream)
-
+	
 	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
 	wshub := ws.HandleWebsocketsHub("/ws")
 	fmt.Println("websocket server at " + hostAndPort + "/ws")
@@ -44,7 +44,7 @@ func main() {
 	commands := map[string]func() error{
 		"setupdb":            db.SetupDB,
 		"store-event":        cmd.StoreEvent,
-		"daemon":             daemons,
+		"daemons":            daemons,
 		"help":               cmd.Help,
 	}
 

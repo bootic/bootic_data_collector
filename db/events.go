@@ -13,8 +13,9 @@ func StoreEvents(eventStream *data.EventStream) *data.EventStream {
 				panic(err)
 			}
 		}
-	}()	
+	}()
 
+	// newEvents is a global initialized in db.go
 	return newEvents
 }
 

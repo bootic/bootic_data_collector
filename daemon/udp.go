@@ -27,8 +27,9 @@ func ReceiveDatagrams (hostAndPort string) *data.EventStream {
   
 }
 
-func rcv (conn *net.UDPConn, eventStream *data.EventStream) {
-	for {
+func rcv(conn *net.UDPConn, eventStream *data.EventStream) {
+	
+  for {
 	  buffer := make([]byte, 256)
 
   	if c, addr, err := conn.ReadFromUDP(buffer); err != nil {
@@ -44,6 +45,7 @@ func rcv (conn *net.UDPConn, eventStream *data.EventStream) {
   	}	
   	
 	}
+
 	panic("should never have got myself into this.")
 }
 
