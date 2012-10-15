@@ -9,8 +9,7 @@ import (
 
 func Router() *mux.Router {
 	router := mux.NewRouter()
-	router.HandleFunc("/", tmpl("views/home.html"))
-	router.HandleFunc("/realtime_ftw", tmpl("views/realtime.html"))
+	router.HandleFunc("/", tmpl("views/dashboard.html"))
 	router.HandleFunc("/app.js", javascript("js/app.js"))
 	return router
 }
