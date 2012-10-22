@@ -1,15 +1,27 @@
 package cmd
 
 import (
-	"time"
 	"fmt"
+	"time"
 )
 
-func Help() error {
+func printAvailableCommands() {
+	fmt.Println("commands available: http, generate-migration, help")
+}
+
+func MissingCommandHelp() error {
+	printAvailableCommands()
+	return nil
+}
+
+func ExplicitCallForHelp() error {
+
 	fmt.Println("you are beyond help.")
-	time.Sleep(16e8)
+	time.Sleep(2e9)
 	fmt.Println("just kidding...")
-	time.Sleep(8e8)
-	fmt.Println("commands available: http, generate-migration, help(this)")
+	time.Sleep(1e9)
+
+	printAvailableCommands()
+
 	return nil
 }

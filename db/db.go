@@ -2,8 +2,8 @@ package db
 
 import (
 	"database/sql"
-	_ "github.com/bmizerany/pq"
 	"datagram.io/data"
+	_ "github.com/bmizerany/pq"
 	//"twitter1/vendor/redigo/redis"
 )
 
@@ -20,17 +20,16 @@ func Init() {
 
 	newEvents = data.NewEventStream()
 
-  prepareEventStatements()
+	prepareEventStatements()
 }
-
 
 func prepareOrPanic(query string) (stmt *sql.Stmt) {
 
-  var err error
+	var err error
 
-  if stmt, err = pg.Prepare(query); err != nil {
-    panic(err)
-  } 
+	if stmt, err = pg.Prepare(query); err != nil {
+		panic(err)
+	}
 
-  return stmt
+	return stmt
 }

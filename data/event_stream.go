@@ -1,12 +1,12 @@
 package data
 
-import(
+import (
 	"encoding/json"
 	"time"
 )
 
 type EventStream struct {
-  Events chan *Event
+	Events chan *Event
 }
 
 func jsonBytesIntoEvent(payload []byte) (event Event, err error) {
@@ -16,20 +16,20 @@ func jsonBytesIntoEvent(payload []byte) (event Event, err error) {
 }
 
 func (events *EventStream) WriteBytes(payload []byte) {
-  go func(){
-    
-    event, err := jsonBytesIntoEvent(payload)//simplejson.NewJson([]byte(msg))
-    
-    if err != nil {
-      panic("Invalid JSON: " + string(payload))
-    }
-   	
-    events.Events <- &event
-  }()
+	go func() {
+
+		event, err := jsonBytesIntoEvent(payload) //simplejson.NewJson([]byte(msg))
+
+		if err != nil {
+			panic("Invalid JSON: " + string(payload))
+		}
+
+		events.Events <- &event
+	}()
 }
 
 func NewEventStream() *EventStream {
-  return &EventStream{
-    Events: make(chan *Event),
-  }
+	return &EventStream{
+		Events: make(chan *Event),
+	}
 }

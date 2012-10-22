@@ -1,25 +1,26 @@
 package db
 
-import(
+import (
 	"database/sql"
 	"datagram.io/data"
 )
 
 func StoreEvents(eventStream *data.EventStream) *data.EventStream {
 
-	go func () {
+	go func() {
 		for {
-			if err := StoreEvent(<- eventStream.Events); err != nil {
+			if err := StoreEvent(<-eventStream.Events); err != nil {
 				panic(err)
 			}
 		}
-	}()	
+	}()
 
+	// newEvents is a global initialized in db.go
 	return newEvents
 }
 
 func StoreEvent(event *data.Event) (err error) {
-	
+
 	// insert the tags and bail if we get an error
 	// TODO, do this within a transaction
 	var tagIds []int64
@@ -27,14 +28,14 @@ func StoreEvent(event *data.Event) (err error) {
 		return
 	}
 
-  var tx *sql.Tx
+	var tx *sql.Tx
 
 	if tx, err = pg.Begin(); err != nil {
 		return
 	}
 
-  defer /* panic-recover */ func() {
-		
+	defer /* panic-recover */ func() {
+
 		if err != nil {
 			tx.Rollback()
 		} else {
