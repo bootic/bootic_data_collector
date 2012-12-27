@@ -1,14 +1,12 @@
 package main
 
 import (
-	"datagram.io/cmd"
 	"datagram.io/daemon"
 	"datagram.io/daemon/ws"
   // "datagram.io/db"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 )
 
 const hostAndPort = "localhost:5555"
@@ -35,27 +33,7 @@ func daemons() (err error) {
 }
 
 func main() {
-
-	commands := map[string]func() error{
-		"store-event": cmd.StoreEvent,
-		"daemons":     daemons,
-		"help":        cmd.ExplicitCallForHelp,
-	}
-
-	argc := len(os.Args)
-	commandName := "help"
-
-	if argc > 1 {
-		commandName = os.Args[1]
-	}
-
-	var command func() error
-
-	if command = commands[commandName]; command == nil {
-		command = cmd.MissingCommandHelp
-	}
-
-	if err := command(); err != nil {
-		fmt.Println(err)
-	}
+  if err := daemons(); err != nil {
+    fmt.Println(err)
+  }
 }
