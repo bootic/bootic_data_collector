@@ -12,3 +12,7 @@ Incoming events/stats are broadcast out to any listening websocket clients. They
 An api to query for historical events is also available over HTTP.
 
 The system uses postgres with carefully designed indicies as its primary datastore. This can be backed up by a Redis instance if/when postgres isn't able to handle the load.
+
+## Start
+
+    $ go run main.go daemons
