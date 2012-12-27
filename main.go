@@ -3,7 +3,6 @@ package main
 import (
 	"datagram.io/cmd"
 	"datagram.io/daemon"
-  // "datagram.io/daemon/web"
 	"datagram.io/daemon/ws"
   // "datagram.io/db"
 	"fmt"
@@ -30,8 +29,6 @@ func daemons() (err error) {
 
   // router := web.Router()
   // http.Handle("/", router)
-
-	fmt.Println("serving HTTP at " + hostAndPort + "/")
 	log.Fatal("HTTP server error: ", http.ListenAndServe(hostAndPort, nil))
 
 	return nil
