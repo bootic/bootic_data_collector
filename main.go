@@ -3,9 +3,9 @@ package main
 import (
 	"datagram.io/cmd"
 	"datagram.io/daemon"
-	"datagram.io/daemon/web"
+  // "datagram.io/daemon/web"
 	"datagram.io/daemon/ws"
-	"datagram.io/db"
+  // "datagram.io/db"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,17 +19,17 @@ func daemons() (err error) {
 	// Start up UDP daemon +++++++++++++++++++++++++++++++++++++++++++++++
 	udpEventStream := daemon.ReceiveDatagrams(hostAndPort)
 
-	newEvents := db.StoreEvents(udpEventStream)
+	// newEvents := db.StoreEvents(udpEventStream)
 
 	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
 	wshub := ws.HandleWebsocketsHub("/ws")
 	fmt.Println("websocket server at " + hostAndPort + "/ws")
 
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
-	wshub.Receive(newEvents)
+	wshub.Receive(udpEventStream)
 
-	router := web.Router()
-	http.Handle("/", router)
+  // router := web.Router()
+  // http.Handle("/", router)
 
 	fmt.Println("serving HTTP at " + hostAndPort + "/")
 	log.Fatal("HTTP server error: ", http.ListenAndServe(hostAndPort, nil))
@@ -39,10 +39,7 @@ func daemons() (err error) {
 
 func main() {
 
-	db.Init()
-
 	commands := map[string]func() error{
-		"setupdb":     db.SetupDB,
 		"store-event": cmd.StoreEvent,
 		"daemons":     daemons,
 		"help":        cmd.ExplicitCallForHelp,
