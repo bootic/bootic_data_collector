@@ -28,8 +28,6 @@ func daemons() (err error) {
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
 	wshub.Receive(udpEventStream)
 
-  // router := web.Router()
-  // http.Handle("/", router)
 	log.Fatal("HTTP server error: ", http.ListenAndServe(ws_host, nil))
 
 	return nil
