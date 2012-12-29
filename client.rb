@@ -9,9 +9,16 @@ N = 70
 
 tags = (1..10).map {|i| "tag-#{i}"}
 
+# Name string
+# App string
+# User string
+# Tags []string
+
 1.upto N do |i|
   msg = JSON.dump(
-    desc: "hello ##{i}",
+    name: "event-##{i}",
+    app: "app-#{i}",
+    user: "user-#{i}",
     tags: tags.shuffle.take(3)
   )
   s.send(msg, 0, HOST, 5555)  
