@@ -3,6 +3,7 @@ package data
 import (
 	"encoding/json"
 	"time"
+	"fmt"
 )
 
 type EventStream struct {
@@ -21,10 +22,10 @@ func (events *EventStream) WriteBytes(payload []byte) {
 		event, err := jsonBytesIntoEvent(payload) //simplejson.NewJson([]byte(msg))
 
 		if err != nil {
-			panic("Invalid JSON: " + string(payload))
+		  fmt.Println("Invalid JSON: " + string(payload))
+		} else {
+		  events.Events <- &event
 		}
-
-		events.Events <- &event
 	}()
 }
 
