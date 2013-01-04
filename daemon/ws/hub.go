@@ -2,6 +2,7 @@ package ws
 
 import (
 	"datagram.io/data"
+	"github.com/bitly/go-simplejson"
 )
 
 type Hub struct {
@@ -9,7 +10,7 @@ type Hub struct {
 	connections map[*Connection]bool
 
 	// Inbound messages from the connections.
-	broadcast chan *data.Event
+	broadcast chan *simplejson.Json
 
 	// Register requests from the connections.
 	register chan *Connection
@@ -20,7 +21,7 @@ type Hub struct {
 
 func NewHub() *Hub {
 	h := &Hub{
-		broadcast:   make(chan *data.Event),
+		broadcast:   make(chan *simplejson.Json),
 		register:    make(chan *Connection),
 		unregister:  make(chan *Connection),
 		connections: make(map[*Connection]bool),
