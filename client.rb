@@ -14,7 +14,9 @@ N = 70
     data: {
       app: "app-#{i}",
       account: "account-#{i}",
+      status: "status-#{i}",
       user: "user-#{i}",
+      resource_id: i,
       browser: {
         os: 'Mac',
         name: 'Chrome',
