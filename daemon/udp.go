@@ -30,7 +30,7 @@ func ReceiveDatagrams(hostAndPort string) *data.EventStream {
 func rcv(conn *net.UDPConn, eventStream *data.EventStream) {
 
 	for {
-		buffer := make([]byte, 512)
+		buffer := make([]byte, 1024)
 
 		if c, addr, err := conn.ReadFromUDP(buffer); err != nil {
 
