@@ -1,30 +1,44 @@
 package main
 
 import (
+  "net/http"
   "datagram.io/udp"
   "datagram.io/udp/ws"
   // "datagram.io/db"
-  "fmt"
+  "datagram.io/redis_stats"
   "log"
-  "net/http"
   "os"
 )
 
 func daemons() (err error) {
   // Configure via env variables
   // WS and UDP hosts can be different, ex. UDP could be listening on a private IP while WS is public
-	udp_host  := os.Getenv("DATAGRAM_IO_UDP_HOST")
-	ws_host   := os.Getenv("DATAGRAM_IO_WS_HOST")
-	
-	// Start up UDP daemon +++++++++++++++++++++++++++++++++++++++++++++++
-	daemon, err := udp.NewDaemon(udp_host)
-	if err != nil {
-	  panic(err)
-	}
+  udp_host  := os.Getenv("DATAGRAM_IO_UDP_HOST")
+  ws_host   := os.Getenv("DATAGRAM_IO_WS_HOST")
+  redis_host:= os.Getenv("REDIS_HOST")
+  
+  // Start up UDP daemon +++++++++++++++++++++++++++++++++++++++++++++++
+  daemon, err := udp.NewDaemon(udp_host)
+  if err != nil {
+    panic(err)
+  }
+  
+  // Track some event types to redis +++++++++++++++++++++++++++++++++++
+  if redis_host != "" {
+    tracker, err := redis_stats.NewTracker(redis_host)
 
+    if err != nil {
+      panic(err)
+    }
+    
+    log.Println("Using redis", redis_host)
+    // Track pageview events as redis increment time series
+    tracker.StoreEvents(daemon.FilterByType("pageview"))
+  }
+  
 	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
 	wshub := ws.HandleWebsocketsHub("/ws")
-	fmt.Println("websocket server at " + ws_host + "/ws")
+	log.Println("websocket server at " + ws_host + "/ws")
 
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
 	// Push all events
@@ -39,6 +53,6 @@ func daemons() (err error) {
 
 func main() {
   if err := daemons(); err != nil {
-    fmt.Println(err)
+    log.Println(err)
   }
 }
