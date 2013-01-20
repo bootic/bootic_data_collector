@@ -58,8 +58,10 @@ func (self *Tracker) StoreEvent(event *simplejson.Json) (err error) {
   if err != nil { return }
   eventAccount, err   := event.Get("data").Get("account").String()
   if err != nil { return }
+  // Track account
   self.Track(eventType, eventAccount)
-  
+  // Track all
+  self.Track(eventType, "all")
   return
 }
 
