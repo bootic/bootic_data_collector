@@ -21,8 +21,6 @@ func daemons() (err error) {
 	if err != nil {
 	  panic(err)
 	}
-  
-	// newEvents := db.StoreEvents(udpEventStream)
 
 	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
 	wshub := ws.HandleWebsocketsHub("/ws")
