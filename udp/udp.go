@@ -50,6 +50,23 @@ func (self *Daemon) ReceiveDatagrams() {
 	panic("should never have got myself into this.")
 }
 
+func (self *Daemon) FilterByType(typeStr string) *data.EventStream {
+  stream := data.NewEventStream()
+  
+  go func (s *data.EventStream) {
+    for {
+      event := <- self.Stream.Events
+      eventType, _ := event.Get("type").String()
+      
+      if eventType == typeStr {
+        stream.Events <- event
+      }
+    }
+  }(stream)
+  
+  return stream
+}
+
 func createUDPListener(hostAndPort string) (conn *net.UDPConn, err error) {
 
 	var udpaddr *net.UDPAddr

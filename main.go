@@ -29,7 +29,10 @@ func daemons() (err error) {
 	fmt.Println("websocket server at " + ws_host + "/ws")
 
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
-	wshub.Receive(daemon.Stream)
+	// Push all events
+  wshub.Receive(daemon.Stream)
+  // We can also filter events by type
+	// wshub.Receive(daemon.FilterByType("pageview"))
 
 	log.Fatal("HTTP server error: ", http.ListenAndServe(ws_host, nil))
 
