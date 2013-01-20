@@ -1,8 +1,8 @@
 package main
 
 import (
-	"datagram.io/daemon"
-	"datagram.io/daemon/ws"
+	"datagram.io/udp"
+	"datagram.io/udp/ws"
   // "datagram.io/db"
 	"fmt"
 	"log"
@@ -17,8 +17,11 @@ func daemons() (err error) {
 	ws_host   := os.Getenv("DATAGRAM_IO_WS_HOST")
 	
 	// Start up UDP daemon +++++++++++++++++++++++++++++++++++++++++++++++
-	udpEventStream := daemon.ReceiveDatagrams(udp_host)
-
+	daemon, err := udp.NewDaemon(udp_host)
+	if err != nil {
+	  panic(err)
+	}
+  
 	// newEvents := db.StoreEvents(udpEventStream)
 
 	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
@@ -26,7 +29,7 @@ func daemons() (err error) {
 	fmt.Println("websocket server at " + ws_host + "/ws")
 
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
-	wshub.Receive(udpEventStream)
+	wshub.Receive(daemon.Stream)
 
 	log.Fatal("HTTP server error: ", http.ListenAndServe(ws_host, nil))
 
