@@ -2,7 +2,6 @@ package ws
 
 import (
 	"datagram.io/data"
-	"github.com/bitly/go-simplejson"
 )
 
 type Hub struct {
@@ -10,7 +9,7 @@ type Hub struct {
 	connections map[*Connection]bool
 
 	// Inbound messages from the connections.
-	broadcast chan *simplejson.Json
+	Notifier data.EventsChannel
 
 	// Register requests from the connections.
 	register chan *Connection
@@ -21,7 +20,7 @@ type Hub struct {
 
 func NewHub() *Hub {
 	h := &Hub{
-		broadcast:   make(chan *simplejson.Json),
+		Notifier:    make(data.EventsChannel),
 		register:    make(chan *Connection),
 		unregister:  make(chan *Connection),
 		connections: make(map[*Connection]bool),
@@ -32,33 +31,24 @@ func NewHub() *Hub {
 	return h
 }
 
-func (h *Hub) Receive(eventStream *data.EventStream) {
-	go func() {
-		for {
-			event := <-eventStream.Events
-			h.broadcast <- event
-		}
-	}()
-}
-
 func (this *Hub) Run() {
-	for {
-		select {
-		case c := <-this.register:
-			this.connections[c] = true
-		case c := <-this.unregister:
-			delete(this.connections, c)
-			close(c.send)
-		case event := <-this.broadcast:
-			for c := range this.connections {
-				select {
-				case c.send <- event:
-				default:
-					delete(this.connections, c)
-					close(c.send)
-					go c.ws.Close()
-				}
-			}
-		}
-	}
+  for {
+    select {
+    case c := <-this.register:
+      this.connections[c] = true
+    case c := <-this.unregister:
+      delete(this.connections, c)
+      close(c.send)
+    case event := <-this.Notifier:
+      for c := range this.connections {
+        select {
+        case c.send <- event:
+        default:
+          delete(this.connections, c)
+          close(c.send)
+          go c.ws.Close()
+        }
+      }
+    }
+  }
 }
