@@ -19,16 +19,16 @@ type Hub struct {
 }
 
 func NewHub() *Hub {
-	h := &Hub{
-		Notifier:    make(data.EventsChannel),
-		register:    make(chan *Connection),
-		unregister:  make(chan *Connection),
-		connections: make(map[*Connection]bool),
-	}
-
-	go h.Run()
-
-	return h
+  h := &Hub{
+    Notifier:    make(data.EventsChannel),
+    register:    make(chan *Connection),
+    unregister:  make(chan *Connection),
+    connections: make(map[*Connection]bool),
+  }
+  
+  go h.Run()
+  
+  return h
 }
 
 func (this *Hub) Run() {

@@ -52,7 +52,7 @@ func (self *Daemon) ReceiveDatagrams() {
     
     } else {
     
-      log.Printf("received %d byte datagram from %s\n", c, addr.String())
+      // log.Printf("received %d byte datagram from %s\n", c, addr.String())
       
       event, err := data.JsonBytesIntoEvent(buffer[:c])
       if err != nil {

@@ -42,7 +42,6 @@ func daemons() (err error) {
 
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
 	// Push all events
-  // wshub.Receive(daemon.Stream)
   daemon.Subscribe(wshub.Notifier)
   // We can also filter events by type
 	// wshub.Receive(daemon.FilterByType("pageview"))
