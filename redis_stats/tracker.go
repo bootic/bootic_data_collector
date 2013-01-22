@@ -13,6 +13,7 @@ import (
 type Tracker struct {
   // Success chan string
   Conn *redis.Client
+  Notifier data.EventsChannel
 }
 
 func (self *Tracker) Track(key, evtType string) {
@@ -43,14 +44,14 @@ func (self *Tracker) Track(key, evtType string) {
   }(key, evtType)
 }
 
-func (self *Tracker) StoreEvents(eventStream *data.EventStream) {
-  go func() {
-    for {
-      if err := self.StoreEvent(<-eventStream.Events); err != nil {
-        log.Println("Redis error on Tracker#StoreEvents", err)
-      }
-    }
-  }()
+func (self *Tracker) Listen() {
+  for {
+    event := <- self.Notifier
+    evtType, _     := event.Get("type").String()
+    evtAccount, _  := event.Get("data").Get("account").String()
+    self.Track(evtAccount, evtType)
+    log.Println("Tracker", evtAccount, " got event", evtType)
+  }
 }
 
 func (self *Tracker) StoreEvent(event *simplejson.Json) (err error) {
@@ -71,7 +72,10 @@ func NewTracker(redisAddress string) (tracker *Tracker, err error) {
   
   tracker = &Tracker{
     Conn: conn,
+    Notifier: make(data.EventsChannel, 1),
   }
+  
+  go tracker.Listen()
   
   return
 }

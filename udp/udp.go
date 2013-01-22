@@ -1,14 +1,16 @@
 package udp
 
 import (
-	"datagram.io/data"
-	"log"
-	"net"
+  "datagram.io/data"
+  "github.com/bitly/go-simplejson"
+  "log"
+  "net"
 )
 
 type Daemon struct {
   Conn *net.UDPConn
   Stream *data.EventStream
+  observers []data.EventsChannel
 }
 
 func NewDaemon(udpHostAndPort string) (daemon *Daemon, err error) {
@@ -28,6 +30,16 @@ func NewDaemon(udpHostAndPort string) (daemon *Daemon, err error) {
   return
 }
 
+func (self *Daemon) Subscribe(observer data.EventsChannel) {
+  self.observers = append(self.observers, observer)
+}
+
+func (self *Daemon) Dispatch(event *simplejson.Json) {
+  for _, observer := range self.observers {
+    observer <- event
+  }
+}
+
 func (self *Daemon) ReceiveDatagrams() {
 
   for {
@@ -42,7 +54,12 @@ func (self *Daemon) ReceiveDatagrams() {
     
       log.Printf("received %d byte datagram from %s\n", c, addr.String())
       
-      self.Stream.WriteBytes(buffer[:c])
+      event, err := data.JsonBytesIntoEvent(buffer[:c])
+      if err != nil {
+        log.Println("Invalid JSON", err)
+      } else {
+        self.Dispatch(event)
+      }
     }
   
   }
