@@ -6,7 +6,6 @@ import (
   "github.com/bitly/go-simplejson"
   "time"
   "fmt"
-  "log"
   "strconv"
 )
 
