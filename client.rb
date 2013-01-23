@@ -6,14 +6,17 @@ s = UDPSocket.new
 HOST = 'localhost'
 
 N = 70
+ACCOUNTS = ['romano', 'japijane', 'depto51']
+EVENTS = ['pageview', 'request', 'apievent']
+
 # app, account/shop, user/token
 1.upto N do |i|
   msg = JSON.dump(
-    type: "event-##{i}",
+    type: EVENTS[rand(EVENTS.size)],
     time: Time.now.to_s,
     data: {
       app: "app-#{i}",
-      account: "account-#{i}",
+      account: ACCOUNTS[rand(ACCOUNTS.size)],
       status: "status-#{i}",
       user: "user-#{i}",
       resource_id: i,

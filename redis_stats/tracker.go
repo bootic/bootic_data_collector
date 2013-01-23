@@ -50,7 +50,6 @@ func (self *Tracker) Listen() {
     evtType, _     := event.Get("type").String()
     evtAccount, _  := event.Get("data").Get("account").String()
     self.Track(evtAccount, evtType)
-    log.Println("Tracker", evtAccount, " got event", evtType)
   }
 }
 

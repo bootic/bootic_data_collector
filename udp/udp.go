@@ -10,7 +10,7 @@ import (
 type Daemon struct {
   Conn *net.UDPConn
   Stream *data.EventStream
-  observers []data.EventsChannel
+  observers map[string][]data.EventsChannel
 }
 
 func NewDaemon(udpHostAndPort string) (daemon *Daemon, err error) {
@@ -22,6 +22,7 @@ func NewDaemon(udpHostAndPort string) (daemon *Daemon, err error) {
   
   daemon = &Daemon{
     Conn: conn,
+    observers: make(map[string][]data.EventsChannel),
     Stream: data.NewEventStream(),
   }
   
@@ -31,11 +32,22 @@ func NewDaemon(udpHostAndPort string) (daemon *Daemon, err error) {
 }
 
 func (self *Daemon) Subscribe(observer data.EventsChannel) {
-  self.observers = append(self.observers, observer)
+  self.observers["all"] = append(self.observers["all"], observer)
+}
+
+func (self *Daemon) SubscribeToType(observer data.EventsChannel, typeStr string) {
+  self.observers[typeStr] = append(self.observers[typeStr], observer)
 }
 
 func (self *Daemon) Dispatch(event *simplejson.Json) {
-  for _, observer := range self.observers {
+  // Dispatch to global observers
+  for _, observer := range self.observers["all"] {
+    observer <- event
+  }
+  
+  // Dispatch to type observers
+  evtStr, _ := event.Get("type").String()
+  for _, observer := range self.observers[evtStr] {
     observer <- event
   }
 }
@@ -46,13 +58,11 @@ func (self *Daemon) ReceiveDatagrams() {
     buffer := make([]byte, 1024)
     
     if c, addr, err := self.Conn.ReadFromUDP(buffer); err != nil {
-    
-      log.Println("blergh: " + err.Error())
+
+      log.Printf("blergh: %d byte datagram from %s with error %s\n", c, addr.String(), err.Error())
       return
     
     } else {
-    
-      // log.Printf("received %d byte datagram from %s\n", c, addr.String())
       
       event, err := data.JsonBytesIntoEvent(buffer[:c])
       if err != nil {
