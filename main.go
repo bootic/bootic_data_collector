@@ -31,9 +31,9 @@ func daemons() (err error) {
       panic(err)
     }
     
-    log.Println("Using redis", redis_host)
+    log.Println("Using redis", redis_host, tracker)
     // Track pageview events as redis increment time series
-    tracker.StoreEvents(daemon.FilterByType("pageview"))
+    daemon.SubscribeToType(tracker.Notifier, "pageview")
   }
   
 	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
@@ -42,7 +42,7 @@ func daemons() (err error) {
 
 	// Push incoming UDP messages to multiple listeners ++++++++++++++++++
 	// Push all events
-  wshub.Receive(daemon.Stream)
+  daemon.Subscribe(wshub.Notifier)
   // We can also filter events by type
 	// wshub.Receive(daemon.FilterByType("pageview"))
 

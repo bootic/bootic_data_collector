@@ -2,7 +2,7 @@ package ws
 
 import (
 	"code.google.com/p/go.net/websocket"
-//	"datagram.io/data"
+  "datagram.io/data"
 	"fmt"
 	"net/http"
 	"strings"
@@ -15,7 +15,7 @@ type Connection struct {
 	hub *Hub
 
 	// Buffered channel of outbound messages.
-	send chan *simplejson.Json
+	send data.EventsChannel
 
 	// Filters
 	tags []string
@@ -98,7 +98,7 @@ func HandleWebsocketsHub(path string) *Hub {
 	hub := NewHub()
 
 	http.Handle(path, websocket.Handler(func(ws *websocket.Conn) {
-		c := &Connection{send: make(chan *simplejson.Json, 512), ws: ws, hub: hub}
+		c := &Connection{send: make(data.EventsChannel, 512), ws: ws, hub: hub}
 		hub.register <- c
 		defer func() { hub.unregister <- c }()
 		go c.writer()
