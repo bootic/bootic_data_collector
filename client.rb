@@ -7,7 +7,8 @@ HOST = 'localhost'
 
 N = 70
 ACCOUNTS = ['romano', 'japijane', 'depto51']
-EVENTS = ['pageview', 'request', 'apievent']
+EVENTS = ['pageview', 'request', 'apievent', 'order']
+STATUSES = ['draft', 'draft', 'draft', 'checkout', 'closed']
 
 # app, account/shop, user/token
 1.upto N do |i|
@@ -17,7 +18,7 @@ EVENTS = ['pageview', 'request', 'apievent']
     data: {
       app: "app-#{i}",
       account: ACCOUNTS[rand(ACCOUNTS.size)],
-      status: "status-#{i}",
+      status: STATUSES[rand(STATUSES.size)],
       user: "user-#{i}",
       resource_id: i,
       browser: {

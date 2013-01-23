@@ -11,9 +11,10 @@ import (
 type Tracker struct {
   Conn *redis.Client
   Notifier data.EventsChannel
+  Funnels data.EventsChannel
 }
 
-func (self *Tracker) Track(key, evtType string) {
+func (self *Tracker) TrackTime(accountStr, evtType string) {
   go func(key, evtType string) {
     now := time.Now()
 
@@ -37,16 +38,45 @@ func (self *Tracker) Track(key, evtType string) {
     // Expire day entry after a month
     self.Conn.Expire(dayKey, 2592000)
 
-  }(key, evtType)
+  }(accountStr, evtType)
 }
 
-func (self *Tracker) Listen() {
+func (self *Tracker) TrackFunnel(accountStr, evtType, statusStr string) {
+  go func(key, evtType, statusStr string) {
+    now := time.Now()
+
+    yearAsString  := strconv.Itoa(now.Year())
+    monthAsString := strconv.Itoa(int(now.Month()))
+
+    // increment current month in year
+    yearKey       := fmt.Sprintf("funnels:%s:%s:%s", key, evtType, yearAsString)
+    self.Conn.HIncrBy(yearKey, statusStr, 1)
+
+    // increment current day in month
+    monthKey      := fmt.Sprintf("funnels:%s:%s:%s:%s", key, evtType, yearAsString, monthAsString)
+    self.Conn.HIncrBy(monthKey, statusStr, 1)
+
+  }(accountStr, evtType, statusStr)
+}
+
+func (self *Tracker) listenForPageviews() {
   for {
     event := <- self.Notifier
     evtType, _     := event.Get("type").String()
     evtAccount, _  := event.Get("data").Get("account").String()
-    self.Track(evtAccount, evtType)
-    self.Track("all", evtType)
+    self.TrackTime(evtAccount, evtType)
+    self.TrackTime("all", evtType)
+  }
+}
+
+func (self *Tracker) listenForFunnels() {
+  for {
+    event := <- self.Funnels
+    evtType, _     := event.Get("type").String()
+    evtAccount, _  := event.Get("data").Get("account").String()
+    evtStatus, _  := event.Get("data").Get("status").String()
+    self.TrackFunnel(evtAccount, evtType, evtStatus)
+    self.TrackFunnel("all", evtType, evtStatus)
   }
 }
 
@@ -57,9 +87,11 @@ func NewTracker(redisAddress string) (tracker *Tracker, err error) {
   tracker = &Tracker{
     Conn: conn,
     Notifier: make(data.EventsChannel, 1),
+    Funnels: make(data.EventsChannel, 1),
   }
   
-  go tracker.Listen()
+  go tracker.listenForPageviews()
+  go tracker.listenForFunnels()
   
   return
 }

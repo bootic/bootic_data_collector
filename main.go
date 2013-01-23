@@ -34,6 +34,7 @@ func daemons() (err error) {
     log.Println("Using redis", redis_host, tracker)
     // Track pageview events as redis increment time series
     daemon.SubscribeToType(tracker.Notifier, "pageview")
+    daemon.SubscribeToType(tracker.Funnels, "order")
   }
   
 	// Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
