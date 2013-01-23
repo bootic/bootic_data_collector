@@ -3,7 +3,6 @@ package redis_stats
 import (
   "datagram.io/data"
   "github.com/vmihailenco/redis"
-  "github.com/bitly/go-simplejson"
   "time"
   "fmt"
   "strconv"
@@ -49,19 +48,8 @@ func (self *Tracker) Listen() {
     evtType, _     := event.Get("type").String()
     evtAccount, _  := event.Get("data").Get("account").String()
     self.Track(evtAccount, evtType)
+    self.Track("all", evtType)
   }
-}
-
-func (self *Tracker) StoreEvent(event *simplejson.Json) (err error) {
-  eventType, err      := event.Get("type").String()
-  if err != nil { return }
-  eventAccount, err   := event.Get("data").Get("account").String()
-  if err != nil { return }
-  // Track account
-  self.Track(eventType, eventAccount)
-  // Track all
-  self.Track(eventType, "all")
-  return
 }
 
 func NewTracker(redisAddress string) (tracker *Tracker, err error) {
