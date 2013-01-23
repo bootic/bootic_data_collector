@@ -9,7 +9,6 @@ import (
 
 type Daemon struct {
   Conn *net.UDPConn
-  Stream *data.EventStream
   observers map[string][]data.EventsChannel
 }
 
@@ -23,7 +22,6 @@ func NewDaemon(udpHostAndPort string) (daemon *Daemon, err error) {
   daemon = &Daemon{
     Conn: conn,
     observers: make(map[string][]data.EventsChannel),
-    Stream: data.NewEventStream(),
   }
   
   go daemon.ReceiveDatagrams()
@@ -75,23 +73,6 @@ func (self *Daemon) ReceiveDatagrams() {
   }
 
 	panic("should never have got myself into this.")
-}
-
-func (self *Daemon) FilterByType(typeStr string) *data.EventStream {
-  stream := data.NewEventStream()
-  
-  go func (s *data.EventStream) {
-    for {
-      event := <- self.Stream.Events
-      eventType, _ := event.Get("type").String()
-      
-      if eventType == typeStr {
-        stream.Events <- event
-      }
-    }
-  }(stream)
-  
-  return stream
 }
 
 func createUDPListener(hostAndPort string) (conn *net.UDPConn, err error) {

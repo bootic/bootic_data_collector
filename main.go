@@ -44,7 +44,6 @@ func daemons() (err error) {
 	// Push all events
   daemon.Subscribe(wshub.Notifier)
   // We can also filter events by type
-	// wshub.Receive(daemon.FilterByType("pageview"))
 
 	log.Fatal("HTTP server error: ", http.ListenAndServe(ws_host, nil))
 

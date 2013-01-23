@@ -9,7 +9,6 @@ import (
 )
 
 type Tracker struct {
-  // Success chan string
   Conn *redis.Client
   Notifier data.EventsChannel
 }
@@ -38,7 +37,6 @@ func (self *Tracker) Track(key, evtType string) {
     // Expire day entry after a month
     self.Conn.Expire(dayKey, 2592000)
 
-    // self.Success <- fmt.Sprintf("Done! %s:%s", key, evtType)
   }(key, evtType)
 }
 
