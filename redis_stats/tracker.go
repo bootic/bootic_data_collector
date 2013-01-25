@@ -84,6 +84,8 @@ func NewTracker(redisAddress string) (tracker *Tracker, err error) {
   password := "" // no password set
   conn := redis.NewTCPClient(redisAddress, password, -1)
   
+  defer conn.Close()
+  
   tracker = &Tracker{
     Conn: conn,
     Notifier: make(data.EventsChannel, 1),
