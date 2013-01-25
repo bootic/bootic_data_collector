@@ -31,7 +31,7 @@ func daemons() (err error) {
       panic(err)
     }
     
-    log.Println("Using redis", redis_host, tracker)
+    log.Println("Using redis", redis_host)
     // Track pageview events as redis increment time series
     daemon.SubscribeToType(tracker.Notifier, "pageview")
     daemon.SubscribeToType(tracker.Funnels, "order")
