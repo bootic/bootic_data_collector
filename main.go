@@ -6,33 +6,41 @@ import (
   "datagram.io/udp/ws"
   "datagram.io/fanout"
   "log"
-  "os"
+  "flag"
 )
 
 func main() {
-  // Configure via env variables
+  var(
+    udpHost string
+    wsHost string
+    zmqAddress string
+  )
+  
   // WS and UDP hosts can be different, ex. UDP could be listening on a private IP while WS is public
-  udp_host  := os.Getenv("DATAGRAM_IO_UDP_HOST")
-  ws_host   := os.Getenv("DATAGRAM_IO_WS_HOST")
+  flag.StringVar(&zmqAddress, "zmqsocket", "tcp://127.0.0.1:6000", "ZMQ socket address to send events to")
+  flag.StringVar(&wsHost, "wshost", "localhost:5555", "Websocket host:port")
+  flag.StringVar(&udpHost, "udphost", "localhost:5555", "host:port to bind for UDP datagrams")
+  
+  flag.Parse()
   
   // Start up UDP daemon +++++++++++++++++++++++++++++++++++++++++++++++
-  daemon, err := udp.NewDaemon(udp_host)
+  daemon, err := udp.NewDaemon(udpHost)
   if err != nil {
     panic(err)
   }
   
   // Setup Websockets hub ++++++++++++++++++++++++++++++++++++++++++++++
   wshub := ws.HandleWebsocketsHub("/ws")
-  log.Println("websocket server at " + ws_host + "/ws")
+  log.Println("websocket server at " + wsHost + "/ws")
   
   // Push incoming UDP messages to multiple listeners ++++++++++++++++++
   // Push all events
   daemon.Subscribe(wshub.Notifier)
   
-  fanoutObserver := fanout.NewZmq("tcp://127.0.0.1:6000")
+  fanoutObserver := fanout.NewZmq(zmqAddress)
   daemon.Subscribe(fanoutObserver.Notifier)
-  log.Println("ZMQ fanout at tcp://127.0.0.1:6000")
+  log.Println("ZMQ fanout at", zmqAddress)
   
 
-  log.Fatal("HTTP server error: ", http.ListenAndServe(ws_host, nil))
+  log.Fatal("HTTP server error: ", http.ListenAndServe(wsHost, nil))
 }
