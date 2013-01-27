@@ -21,7 +21,6 @@ func (observer *ZMQObserver) listen () {
     evtType, _ := event.Get("type").String()
     
     observer.dispatch(evtType, evtBytes)
-    observer.dispatch("all", evtBytes)
   }
 }
 
