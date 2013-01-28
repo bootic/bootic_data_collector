@@ -14,7 +14,7 @@ type ZMQObserver struct {
 func (observer *ZMQObserver) listen () {
   for {
     event := <- observer.Notifier
-    evtBytes, err := event.MarshalJSON()
+    evtBytes, err := data.Encode(event)
     if err != nil {
       break
     }

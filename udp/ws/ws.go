@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"github.com/bitly/go-simplejson"
 )
 
 type Connection struct {
@@ -44,8 +43,8 @@ func (c *Connection) reader() {
 	c.ws.Close()
 }
 
-func decodeEventIntoString(event *simplejson.Json) (str string, err error) {
-	bytes, err := event.MarshalJSON()//json.Marshal(event)
+func encodeEventIntoString(event *data.Event) (str string, err error) {
+	bytes, err := data.EncodeJSON(event)
 	if err != nil {
 		return
 	}
@@ -54,7 +53,7 @@ func decodeEventIntoString(event *simplejson.Json) (str string, err error) {
 
 // An event must match all filters in a connection in order to be sent to connection
 // If connection has no filters, then we assume connection wants ALL events
-func (c *Connection) includedInFilters(event *simplejson.Json) bool {
+func (c *Connection) includedInFilters(event *data.Event) bool {
 	// if len(c.tags) == 0 { // no filters set. Allow everything
 	//     return true
 	//   } else { // only for set filters
@@ -77,7 +76,7 @@ func (c *Connection) includedInFilters(event *simplejson.Json) bool {
 func (c *Connection) writer() {
 	for event := range c.send {
 		if c.includedInFilters(event) {
-			message, err := decodeEventIntoString(event)
+			message, err := encodeEventIntoString(event)
 			if err != nil {
 				break
 			}

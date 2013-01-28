@@ -2,7 +2,6 @@ package udp
 
 import (
   "datagram.io/data"
-  "github.com/bitly/go-simplejson"
   "log"
   "net"
 )
@@ -37,7 +36,7 @@ func (self *Daemon) SubscribeToType(observer data.EventsChannel, typeStr string)
   self.observers[typeStr] = append(self.observers[typeStr], observer)
 }
 
-func (self *Daemon) Dispatch(event *simplejson.Json) {
+func (self *Daemon) Dispatch(event *data.Event) {
   // Dispatch to global observers
   for _, observer := range self.observers["all"] {
     observer <- event
@@ -62,7 +61,7 @@ func (self *Daemon) ReceiveDatagrams() {
     
     } else {
       
-      event, err := data.JsonBytesIntoEvent(buffer[:c])
+      event, err := data.DecodeJSON(buffer[:c])
       if err != nil {
         log.Println("Invalid JSON", err)
       } else {
