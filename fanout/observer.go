@@ -1,7 +1,7 @@
 package fanout
 
 import (
-  "datagram.io/data"
+  data "github.com/bootic/bootic_go_data"
   zmq "github.com/alecthomas/gozmq"
   "bytes"
 )

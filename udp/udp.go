@@ -1,7 +1,7 @@
 package udp
 
 import (
-  "datagram.io/data"
+  data "github.com/bootic/bootic_go_data"
   "log"
   "net"
 )
