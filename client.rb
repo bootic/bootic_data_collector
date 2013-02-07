@@ -17,6 +17,7 @@ STATUSES = ['draft', 'draft', 'draft', 'checkout', 'closed']
     time: Time.now.to_s,
     data: {
       app: "app-#{i}",
+      tz: (rand * 10).round,
       account: ACCOUNTS[rand(ACCOUNTS.size)],
       status: STATUSES[rand(STATUSES.size)],
       user: "user-#{i}",
