@@ -1,7 +1,7 @@
 package fanout
 
 import (
-  "datagram.io/data"
+  data "github.com/bootic/bootic_go_data"
   zmq "github.com/alecthomas/gozmq"
   "bytes"
 )
@@ -14,7 +14,7 @@ type ZMQObserver struct {
 func (observer *ZMQObserver) listen () {
   for {
     event := <- observer.Notifier
-    evtBytes, err := event.MarshalJSON()
+    evtBytes, err := data.Encode(event)
     if err != nil {
       break
     }
