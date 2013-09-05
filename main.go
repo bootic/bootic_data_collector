@@ -37,7 +37,10 @@ func main() {
   // Push all events
   daemon.Subscribe(wshub.Notifier)
   
+  // Start up PUB ZMQ client
   fanoutObserver := fanout.NewZmq(zmqAddress)
+  
+  // Push incoming UDP events down ZMQ pub/sub socket
   daemon.Subscribe(fanoutObserver.Notifier)
   log.Println("ZMQ fanout at", zmqAddress)
   
