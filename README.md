@@ -1,4 +1,4 @@
-# datagram.io
+# Data collector
 
 Datagram is a realtime events/statistics recording and distribution backend written in Go.
 The backend is designed to receive messages via UDP and publish them via Websockets and a ZMQ pub/sub socket:
