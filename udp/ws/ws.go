@@ -1,24 +1,23 @@
 package ws
 
 import (
-  "code.google.com/p/go.net/websocket"
-  data "github.com/bootic/bootic_go_data"
-  "fmt"
-  "net/http"
-  "strings"
+	"code.google.com/p/go.net/websocket"
+	"fmt"
+	data "github.com/bootic/bootic_go_data"
+	"net/http"
+	"strings"
 )
 
 type Connection struct {
-  // The websocket connection.
-  ws  *websocket.Conn
-  hub *Hub
-  
-  // Buffered channel of outbound messages.
-  send data.EventsChannel
-  
-  // Filters
-  tags []string
-  
+	// The websocket connection.
+	ws  *websocket.Conn
+	hub *Hub
+
+	// Buffered channel of outbound messages.
+	send data.EventsChannel
+
+	// Filters
+	tags []string
 }
 
 func (c *Connection) reader() {

@@ -1,7 +1,7 @@
 package ws
 
 import (
-  data "github.com/bootic/bootic_go_data"
+	data "github.com/bootic/bootic_go_data"
 )
 
 type Hub struct {
@@ -19,36 +19,36 @@ type Hub struct {
 }
 
 func NewHub() *Hub {
-  h := &Hub{
-    Notifier:    make(data.EventsChannel),
-    register:    make(chan *Connection),
-    unregister:  make(chan *Connection),
-    connections: make(map[*Connection]bool),
-  }
-  
-  go h.Run()
-  
-  return h
+	h := &Hub{
+		Notifier:    make(data.EventsChannel),
+		register:    make(chan *Connection),
+		unregister:  make(chan *Connection),
+		connections: make(map[*Connection]bool),
+	}
+
+	go h.Run()
+
+	return h
 }
 
 func (this *Hub) Run() {
-  for {
-    select {
-    case c := <-this.register:
-      this.connections[c] = true
-    case c := <-this.unregister:
-      delete(this.connections, c)
-      close(c.send)
-    case event := <-this.Notifier:
-      for c := range this.connections {
-        select {
-        case c.send <- event:
-        default:
-          delete(this.connections, c)
-          close(c.send)
-          go c.ws.Close()
-        }
-      }
-    }
-  }
+	for {
+		select {
+		case c := <-this.register:
+			this.connections[c] = true
+		case c := <-this.unregister:
+			delete(this.connections, c)
+			close(c.send)
+		case event := <-this.Notifier:
+			for c := range this.connections {
+				select {
+				case c.send <- event:
+				default:
+					delete(this.connections, c)
+					close(c.send)
+					go c.ws.Close()
+				}
+			}
+		}
+	}
 }
