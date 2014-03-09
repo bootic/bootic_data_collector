@@ -38,10 +38,10 @@ func main() {
   daemon.Subscribe(wshub.Notifier)
 
   // Start up PUB ZMQ client
-  fanoutObserver := fanout.NewZmq(zmqAddress)
+  zmqObserver := fanout.NewZmq(zmqAddress)
 
   // Push incoming UDP events down ZMQ pub/sub socket
-  daemon.Subscribe(fanoutObserver.Notifier)
+  daemon.Subscribe(zmqObserver.Notifier)
   log.Println("ZMQ fanout at", zmqAddress)
 
   log.Fatal("HTTP server error: ", http.ListenAndServe(wsHost, nil))

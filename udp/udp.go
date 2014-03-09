@@ -60,13 +60,15 @@ func (self *Daemon) ReceiveDatagrams() {
       return
 
     } else {
+
       event, err := data.DecodeJSON(buffer[:c])
-      log.Println("Received", event)
+
       if err != nil {
         log.Println("Invalid JSON", err)
       } else {
         self.Dispatch(event)
       }
+
     }
 
   }
