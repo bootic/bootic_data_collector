@@ -1,9 +1,9 @@
 package main
 
 import (
-  "datagram.io/fanout"
-  "datagram.io/udp"
-  "datagram.io/udp/ws"
+  "bootic_data_collector/fanout"
+  "bootic_data_collector/udp"
+  "bootic_data_collector/udp/ws"
   "flag"
   "log"
   "net/http"
