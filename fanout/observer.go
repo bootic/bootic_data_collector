@@ -7,7 +7,7 @@ import (
 )
 
 type ZMQObserver struct {
-  socket   zmq.Socket
+  socket   *zmq.Socket
   Notifier data.EventsChannel
 }
 
