@@ -15,12 +15,14 @@ func main() {
     udpHost    string
     wsHost     string
     zmqAddress string
+    sseHost string
   )
 
   // WS and UDP hosts can be different, ex. UDP could be listening on a private IP while WS is public
   flag.StringVar(&zmqAddress, "zmqsocket", "tcp://127.0.0.1:6000", "ZMQ socket address to send events to")
   flag.StringVar(&wsHost, "wshost", "localhost:5555", "Websocket host:port")
   flag.StringVar(&udpHost, "udphost", "localhost:5555", "host:port to bind for UDP datagrams")
+  flag.StringVar(&sseHost, "ssehost", "localhost:5556", "host:port to bind for Server Sent Events")
 
   flag.Parse()
 
@@ -51,7 +53,8 @@ func main() {
 
   log.Println("ZMQ fanout at", zmqAddress)
 
-  go http.ListenAndServe("localhost:8888", firehoseDaemon)
+  go http.ListenAndServe(sseHost, firehoseDaemon)
 
+  log.Println("Server Sent Events at", sseHost)
   log.Fatal("HTTP server error: ", http.ListenAndServe(wsHost, nil))
 }
