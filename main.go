@@ -4,6 +4,7 @@ import (
   "bootic_data_collector/fanout"
   "bootic_data_collector/udp"
   "bootic_data_collector/udp/ws"
+  "bootic_data_collector/firehose"
   "flag"
   "log"
   "net/http"
@@ -42,7 +43,15 @@ func main() {
 
   // Push incoming UDP events down ZMQ pub/sub socket
   daemon.Subscribe(zmqObserver.Notifier)
+
+  // Firehose subscriber
+  firehoseDaemon := firehose.NewServer()
+
+  daemon.Subscribe(firehoseDaemon.Notifier)
+
   log.Println("ZMQ fanout at", zmqAddress)
+
+  go http.ListenAndServe("localhost:8888", firehoseDaemon)
 
   log.Fatal("HTTP server error: ", http.ListenAndServe(wsHost, nil))
 }
