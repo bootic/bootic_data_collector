@@ -16,6 +16,7 @@ func main() {
     wsHost     string
     zmqAddress string
     sseHost string
+    globalAccessToken string
   )
 
   // WS and UDP hosts can be different, ex. UDP could be listening on a private IP while WS is public
@@ -23,6 +24,7 @@ func main() {
   flag.StringVar(&wsHost, "wshost", "localhost:5555", "Websocket host:port")
   flag.StringVar(&udpHost, "udphost", "localhost:5555", "host:port to bind for UDP datagrams")
   flag.StringVar(&sseHost, "ssehost", "localhost:5556", "host:port to bind for Server Sent Events")
+  flag.StringVar(&globalAccessToken, "accesstoken", "", "Access token required to connect to SSE events")
 
   flag.Parse()
 
@@ -53,7 +55,9 @@ func main() {
 
   log.Println("ZMQ fanout at", zmqAddress)
 
-  go http.ListenAndServe(sseHost, firehoseDaemon)
+  authenticatedFirehose := firehose.NewAuthHandler(firehoseDaemon, globalAccessToken)
+
+  go http.ListenAndServe(sseHost, authenticatedFirehose)
 
   log.Println("Server Sent Events at", sseHost)
   log.Fatal("HTTP server error: ", http.ListenAndServe(wsHost, nil))
