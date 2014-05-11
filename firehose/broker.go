@@ -7,11 +7,13 @@ import (
   "net/http"
 )
 
+type MessageChan chan []byte
+
 type Broker struct {
   Notifier data.EventsChannel
-  newClients chan chan []byte
-  defunctClients chan chan []byte
-  clients map[chan []byte]bool
+  newClients chan MessageChan
+  defunctClients chan MessageChan
+  clients map[MessageChan]bool
 }
 
 func (broker *Broker) listen() {
@@ -35,7 +37,6 @@ func (broker *Broker) listen() {
           clientMessageChan <- json
         }
       }
-      // log.Printf("Broadcast message to %d clients", len(broker.clients))
     }
   }
   
@@ -57,7 +58,7 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
   rw.Header().Set("Connection", "keep-alive")
   rw.Header().Set("Access-Control-Allow-Origin", "*")
 
-  messageChan := make(chan []byte)
+  messageChan := make(MessageChan)
   broker.newClients <- messageChan
 
   // Remove this client from the map of attached clients
@@ -88,9 +89,9 @@ func NewServer() (broker *Broker) {
 
   broker = &Broker{
     Notifier: make(data.EventsChannel, 1),
-    newClients: make(chan chan []byte),
-    defunctClients: make(chan chan []byte),
-    clients: make(map[chan []byte]bool),
+    newClients: make(chan MessageChan),
+    defunctClients: make(chan MessageChan),
+    clients: make(map[MessageChan]bool),
   }
 
   go broker.listen()
