@@ -68,7 +68,11 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
     broker.defunctClients <- messageChan
   }()
 
-  // isten to connection close and un-register messageChan
+  // "raw" query string option
+  req.ParseForm()
+  raw := len(req.Form["raw"]) > 0
+
+  // Listen to connection close and un-register messageChan
   notify := rw.(http.CloseNotifier).CloseNotify()
 
   go func() {
@@ -80,7 +84,14 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
   // block waiting or messages broadcast on this connection's messageChan
   for {
     // Write to the ResponseWriter
-    fmt.Fprintf(rw, "data: %s\n\n", <-messageChan)
+    if raw {
+      // Raw JSON events, one per line
+      fmt.Fprintf(rw, "%s\n", <-messageChan)
+    } else {
+      // Server Sent Events compatible
+      fmt.Fprintf(rw, "data: %s\n\n", <-messageChan)
+    }
+
     f.Flush()
   }
 }
