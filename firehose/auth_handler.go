@@ -29,12 +29,6 @@ func (handler *AuthHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 func (handler *AuthHandler) authorize(req *http.Request) (unauthorized bool, reason string) {
   scheme, credentials, _ := ParseRequest(req)
 
-  // if err!=nil {
-//     unauthorized = true
-//     reason = "Unauthenticated request"
-//     return
-//   }
-
   switch scheme {
   case "Bearer":
     if credentials != handler.token {
