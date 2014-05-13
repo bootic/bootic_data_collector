@@ -7,6 +7,10 @@ import (
 	"net/http"
 )
 
+// A MessageChan is a channel of channels
+// Each connection sends a channel of bytes to a global MessageChan
+// The main broker listen() loop listens on new connections on MessageChan
+// New event messages are broadcast to all registered connection channels
 type MessageChan chan []byte
 
 type Broker struct {
@@ -29,11 +33,11 @@ func (broker *Broker) listen() {
 			log.Printf("Removed client. %d registered clients", len(broker.clients))
 		case event := <-broker.Notifier:
 			// Send event to all connected clients
-			for clientMessageChan, _ := range broker.clients {
-				json, err := data.EncodeJSON(event)
-				if err != nil {
-					log.Println("Error encoding event to JSON")
-				} else {
+			json, err := data.EncodeJSON(event)
+			if err != nil {
+				log.Println("Error encoding event to JSON")
+			} else {
+				for clientMessageChan, _ := range broker.clients {
 					clientMessageChan <- json
 				}
 			}
