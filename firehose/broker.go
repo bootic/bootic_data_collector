@@ -34,7 +34,7 @@ type Broker struct {
 	newClients chan MessageChan
 
 	// Closed client connections
-	defunctClients chan MessageChan
+	closingClients chan MessageChan
 
 	// Client connections registry
 	clients map[MessageChan]bool
@@ -50,7 +50,7 @@ func (broker *Broker) listen() {
 			// Register their message channel
 			broker.clients[s] = true
 			log.Printf("Client added. %d registered clients", len(broker.clients))
-		case s := <-broker.defunctClients:
+		case s := <-broker.closingClients:
 
 			// A client has dettached and we want to
 			// stop sending them messages.
@@ -101,7 +101,7 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// when `EventHandler` exits.
 	defer func() {
 		fmt.Println("HERE.")
-		broker.defunctClients <- messageChan
+		broker.closingClients <- messageChan
 	}()
 
 	// "raw" query string option
@@ -115,7 +115,7 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	go func() {
 		<-notify
 		fmt.Println("HTTP connection just closed.")
-		broker.defunctClients <- messageChan
+		broker.closingClients <- messageChan
 	}()
 
 	// block waiting or messages broadcast on this connection's messageChan
@@ -139,7 +139,7 @@ func NewServer() (broker *Broker) {
 	broker = &Broker{
 		Notifier:       make(data.EventsChannel, 1),
 		newClients:     make(chan MessageChan),
-		defunctClients: make(chan MessageChan),
+		closingClients: make(chan MessageChan),
 		clients:        make(map[MessageChan]bool),
 	}
 
