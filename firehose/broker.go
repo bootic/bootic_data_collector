@@ -7,23 +7,42 @@ import (
 	"net/http"
 )
 
+// The Firehose server implements a Server Sent Events endpoint.
+// It subscribes to the global event stream and exposes them as a long-lived, authenticated
+// HTTP response.
+// Example usage:
+//
+//     $ curl -u user:pass server.com
+//     data: {"type": "pageview", "time": 123456789, "data": {...}}
+//     data: {"type": "order", "time": 123456799, "data": {...}}
+
 // A MessageChan is a channel of channels
 // Each connection sends a channel of bytes to a global MessageChan
 // The main broker listen() loop listens on new connections on MessageChan
 // New event messages are broadcast to all registered connection channels
 type MessageChan chan []byte
 
+// A Broker holds open client connections,
+// listens for incoming events on its Notifier channel
+// and broadcast event data to all registered connections
 type Broker struct {
-	Notifier       data.EventsChannel
-	newClients     chan MessageChan
+	// Events are pushed to this channel by the main UDP daemon
+	Notifier data.EventsChannel
+	// New client connections
+	newClients chan MessageChan
+	// Closed client connections
 	defunctClients chan MessageChan
-	clients        map[MessageChan]bool
+	// Client connections registry
+	clients map[MessageChan]bool
 }
 
+// Listen on different channels and act accordingly
 func (broker *Broker) listen() {
 	for {
 		select {
 		case s := <-broker.newClients:
+			// A new client has connected.
+			// Register their message channel
 			broker.clients[s] = true
 			log.Printf("Client added. %d registered clients", len(broker.clients))
 		case s := <-broker.defunctClients:
@@ -46,6 +65,8 @@ func (broker *Broker) listen() {
 
 }
 
+// Implement the http.Handler interface.
+// This allows us to wrap HTTP handlers (see auth_handler.go)
 func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Make sure that the writer supports flushing.
 	//
@@ -62,7 +83,9 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Connection", "keep-alive")
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
 
+	// Each connection registers its own message channel with the Broker's connections registry
 	messageChan := make(MessageChan)
+	// Signal the broker that we have a new connection
 	broker.newClients <- messageChan
 
 	// Remove this client from the map of attached clients
@@ -73,6 +96,7 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}()
 
 	// "raw" query string option
+	// If provided, send raw JSON lines instead of SSE-compliant strings.
 	req.ParseForm()
 	raw := len(req.Form["raw"]) > 0
 
@@ -100,6 +124,7 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// Server factory
 func NewServer() (broker *Broker) {
 
 	broker = &Broker{
