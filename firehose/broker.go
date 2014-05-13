@@ -26,12 +26,16 @@ type MessageChan chan []byte
 // listens for incoming events on its Notifier channel
 // and broadcast event data to all registered connections
 type Broker struct {
+
 	// Events are pushed to this channel by the main UDP daemon
 	Notifier data.EventsChannel
+
 	// New client connections
 	newClients chan MessageChan
+
 	// Closed client connections
 	defunctClients chan MessageChan
+
 	// Client connections registry
 	clients map[MessageChan]bool
 }
@@ -41,16 +45,19 @@ func (broker *Broker) listen() {
 	for {
 		select {
 		case s := <-broker.newClients:
+
 			// A new client has connected.
 			// Register their message channel
 			broker.clients[s] = true
 			log.Printf("Client added. %d registered clients", len(broker.clients))
 		case s := <-broker.defunctClients:
+
 			// A client has dettached and we want to
 			// stop sending them messages.
 			delete(broker.clients, s)
 			log.Printf("Removed client. %d registered clients", len(broker.clients))
 		case event := <-broker.Notifier:
+
 			// Send event to all connected clients
 			json, err := data.EncodeJSON(event)
 			if err != nil {
@@ -86,6 +93,7 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// Each connection registers its own message channel with the Broker's connections registry
 	messageChan := make(MessageChan)
+
 	// Signal the broker that we have a new connection
 	broker.newClients <- messageChan
 
