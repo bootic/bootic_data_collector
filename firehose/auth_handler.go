@@ -8,11 +8,22 @@ import (
 	"strings"
 )
 
+// This HTTP middleware can wrap any http.Handler to add token-based authentication.
+// It will attempt to find a token in
+//   1. A "bearer" token in the Authentication header
+//   2. Basic Authentication
+//   3. An "access_token" parameter in the query string (usable in browser's EventSource API)
+
+// The middleware object and basic state
 type AuthHandler struct {
-	app   http.Handler
+	// instance of http.Handler to be decorated
+	app http.Handler
+	// The access token
 	token string
 }
 
+// Implement the http.Handler interface.
+// http://golang.org/pkg/net/http/#Handler
 func (handler *AuthHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	unauthorized, reason := handler.authorize(req)
@@ -26,6 +37,7 @@ func (handler *AuthHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 	handler.app.ServeHTTP(rw, req)
 }
 
+// Detect auth scheme and deal with it accordingly
 func (handler *AuthHandler) authorize(req *http.Request) (unauthorized bool, reason string) {
 	scheme, credentials, _ := ParseRequest(req)
 
@@ -57,6 +69,7 @@ func (handler *AuthHandler) authorize(req *http.Request) (unauthorized bool, rea
 	return
 }
 
+// Middleware factory
 func NewAuthHandler(app http.Handler, token string) (handler *AuthHandler) {
 
 	handler = &AuthHandler{

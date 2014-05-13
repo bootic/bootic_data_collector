@@ -67,6 +67,7 @@ func (broker *Broker) listen() {
 
 // Implement the http.Handler interface.
 // This allows us to wrap HTTP handlers (see auth_handler.go)
+// http://golang.org/pkg/net/http/#Handler
 func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Make sure that the writer supports flushing.
 	//
