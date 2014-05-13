@@ -6,6 +6,8 @@ import (
 	"net"
 )
 
+// The UDP Daemon listens for incoming datagrams
+// and broadcasts them to subscribers
 type Daemon struct {
 	Conn      *net.UDPConn
 	observers map[string][]data.EventsChannel
