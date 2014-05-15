@@ -58,6 +58,7 @@ func (broker *Broker) listen() {
 			log.Printf("Removed client. %d registered clients", len(broker.clients))
 		case event := <-broker.Notifier:
 
+			// We got a new event from the outside!
 			// Send event to all connected clients
 			json, err := data.EncodeJSON(event)
 			if err != nil {
@@ -78,7 +79,7 @@ func (broker *Broker) listen() {
 func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Make sure that the writer supports flushing.
 	//
-	f, ok := rw.(http.Flusher)
+	flusher, ok := rw.(http.Flusher)
 
 	if !ok {
 		http.Error(rw, "Streaming unsupported!", http.StatusInternalServerError)
@@ -97,8 +98,8 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Signal the broker that we have a new connection
 	broker.newClients <- messageChan
 
-	// Remove this client from the map of attached clients
-	// when `EventHandler` exits.
+	// Remove this client from the map of connected clients
+	// when this handler exits.
 	defer func() {
 		fmt.Println("HERE.")
 		broker.closingClients <- messageChan
@@ -114,7 +115,6 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	go func() {
 		<-notify
-		fmt.Println("HTTP connection just closed.")
 		broker.closingClients <- messageChan
 	}()
 
@@ -128,14 +128,14 @@ func (broker *Broker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			// Server Sent Events compatible
 			fmt.Fprintf(rw, "data: %s\n\n", <-messageChan)
 		}
-
-		f.Flush()
+		// Flush the data inmediatly instead of buffering it for later.
+		flusher.Flush()
 	}
 }
 
-// Server factory
+// Broker factory
 func NewServer() (broker *Broker) {
-
+	// Instantiate a broker
 	broker = &Broker{
 		Notifier:       make(data.EventsChannel, 1),
 		newClients:     make(chan MessageChan),
@@ -143,6 +143,7 @@ func NewServer() (broker *Broker) {
 		clients:        make(map[MessageChan]bool),
 	}
 
+	// Set it running - listening and broadcasting events
 	go broker.listen()
 
 	return
