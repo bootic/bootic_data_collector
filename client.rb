@@ -7,8 +7,9 @@ HOST = 'localhost'
 
 N = 70
 ACCOUNTS = ['romano', 'japijane', 'depto51']
-EVENTS = ['pageview', 'request', 'apievent', 'order']
+EVENTS = ['pageview', 'request', 'apievent', 'order.create', 'order.update', 'product.update']
 STATUSES = ['draft', 'draft', 'draft', 'checkout', 'closed']
+DOMAINS = ['www.bootic.net', 'simplelist.bootic.net', 'www.japijane.cl']
 
 # app, account/shop, user/token
 1.upto N do |i|
@@ -20,6 +21,7 @@ STATUSES = ['draft', 'draft', 'draft', 'checkout', 'closed']
       tz: (rand * 10).round,
       account: ACCOUNTS[rand(ACCOUNTS.size)],
       status: STATUSES[rand(STATUSES.size)],
+      domain: DOMAINS[rand(DOMAINS.size)],
       user: "user-#{i}",
       resource_id: i,
       browser: {
